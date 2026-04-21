@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
-import { Music, CheckCircle2, Shield, ArrowRight, Loader2, Video, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Music, ArrowRight, Loader2, Video, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const PLATFORMS = {
   spotify: {
