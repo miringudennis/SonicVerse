@@ -66,7 +66,7 @@ exports.getTopTracks = async (req, res) => {
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
   try {
-    const response = await axios.get('https://api.spotify.com/v1/me/top/tracks?limit=10', {
+    const response = await axios.get('https://api.spotify.com/v1/me/top/tracks?limit=20', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     
@@ -76,12 +76,47 @@ exports.getTopTracks = async (req, res) => {
       artist_name: track.artists[0].name,
       cover_url: track.album.images[0]?.url,
       isExternal: true,
-      source: 'Spotify'
+      source: 'Spotify',
+      mood_tags: ['Imported', 'Spotify']
     }));
 
     res.json(tracks);
   } catch (error) {
     console.error('Spotify Fetch Error:', error.message);
     res.status(500).json({ message: 'Failed to fetch Spotify data' });
+  }
+};
+
+exports.getTopArtistsLocations = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=10', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    
+    // Since Spotify doesn't provide coordinates, we'll simulate some global distribution
+    // for the connected artists to show them on the map.
+    const locations = [
+      [-1.2921, 36.8219], [51.5074, -0.1278], [40.7128, -74.0060], 
+      [35.6762, 139.6503], [-33.8688, 151.2093], [48.8566, 2.3522],
+      [-23.5505, -46.6333], [55.7558, 37.6173], [28.6139, 77.2090], [31.2304, 121.4737]
+    ];
+
+    const artists = response.data.items.map((artist, index) => ({
+      id: artist.id,
+      username: artist.name,
+      location: 'Spotify Connected',
+      coordinates: locations[index % locations.length],
+      genre_tags: artist.genres,
+      avatar_url: artist.images[0]?.url,
+      source: 'Spotify'
+    }));
+
+    res.json(artists);
+  } catch (error) {
+    console.error('Spotify Artists Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch Spotify artists' });
   }
 };

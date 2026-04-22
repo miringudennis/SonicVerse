@@ -3,7 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
-import { Loader2, Music } from 'lucide-react';
+import { Loader2, Music, Video, Play as AppleMusicIcon } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 // Fix for default marker icons in React Leaflet
 // @ts-ignore
@@ -21,6 +22,13 @@ const CustomMarkerIcon = new L.DivIcon({
   iconAnchor: [15, 15]
 });
 
+const SpotifyMarkerIcon = new L.DivIcon({
+  className: 'custom-div-icon',
+  html: `<div style="background-color: #10b981; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
 const ChangeView = ({ center }: { center: [number, number] }) => {
   const map = useMap();
   useEffect(() => {
@@ -33,12 +41,31 @@ export const MapPage = () => {
   const [artists, setArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [center, setCenter] = useState<[number, number]>([-1.2921, 36.8219]); // Nairobi
+  const linkedAccounts = useAuthStore(state => state.linkedAccounts);
 
   useEffect(() => {
     const fetchArtists = async () => {
+      setLoading(true);
       try {
         const res = await api.get('/songs/artists/locations');
-        setArtists(res.data);
+        let allArtists = res.data;
+
+        // Fetch Spotify artists if linked
+        if (linkedAccounts.some(a => a.platform === 'spotify')) {
+          const token = localStorage.getItem('spotify_token');
+          if (token) {
+            try {
+              const spotifyRes = await api.get('/spotify/top-artists-locations', {
+                headers: { 'x-spotify-token': token }
+              });
+              allArtists = [...allArtists, ...spotifyRes.data];
+            } catch (err) {
+              console.error('Spotify Map Error:', err);
+            }
+          }
+        }
+
+        setArtists(allArtists);
       } catch (err) {
         console.error('Failed to fetch artist locations:', err);
       } finally {
@@ -46,7 +73,7 @@ export const MapPage = () => {
       }
     };
     fetchArtists();
-  }, []);
+  }, [linkedAccounts]);
 
   return (
     <div className="flex flex-col gap-8 py-4">
@@ -93,18 +120,25 @@ export const MapPage = () => {
             />
             {artists.map((artist) => (
               <Marker 
-                key={artist.id} 
+                key={`${artist.id}-${artist.source || 'internal'}`} 
                 position={artist.coordinates}
-                icon={CustomMarkerIcon}
+                icon={artist.source === 'Spotify' ? SpotifyMarkerIcon : CustomMarkerIcon}
               >
                 <Popup className="custom-popup">
                    <div className="p-4 min-w-[200px] bg-gray-900 text-white rounded-2xl border border-gray-800">
                       <div className="flex items-center gap-4 mb-4">
-                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-xl text-white shadow-lg">
-                            {artist.username[0].toUpperCase()}
-                         </div>
+                         {artist.avatar_url ? (
+                            <img src={artist.avatar_url} className="w-12 h-12 rounded-xl object-cover shadow-lg border border-white/10" alt={artist.username} />
+                         ) : (
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-xl text-white shadow-lg">
+                               {artist.username[0].toUpperCase()}
+                            </div>
+                         )}
                          <div>
-                            <h4 className="font-black text-sm text-white m-0 leading-tight">{artist.username}</h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-black text-sm text-white m-0 leading-tight">{artist.username}</h4>
+                              {artist.source === 'Spotify' && <Music className="w-3 h-3 text-green-500" />}
+                            </div>
                             <p className="text-[10px] text-gray-500 m-0 uppercase tracking-widest font-bold mt-0.5">{artist.location}</p>
                          </div>
                       </div>
@@ -113,8 +147,10 @@ export const MapPage = () => {
                            <span key={tag} className="text-[9px] font-bold bg-gray-800 px-2.5 py-1 rounded-full text-gray-400 border border-gray-700/50 uppercase tracking-tighter">{tag}</span>
                          ))}
                       </div>
-                      <button className="w-full py-2.5 bg-blue-600 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-900/40">
-                         <Music className="w-3 h-3" /> EXPLORE TRACKS
+                      <button className={`w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg ${
+                        artist.source === 'Spotify' ? 'bg-green-600 hover:bg-green-700 shadow-green-900/40' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-900/40'
+                      }`}>
+                         <Music className="w-3 h-3" /> {artist.source === 'Spotify' ? 'OPEN IN SPOTIFY' : 'EXPLORE TRACKS'}
                       </button>
                    </div>
                 </Popup>

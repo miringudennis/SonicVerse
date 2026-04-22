@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
-import { Music, ArrowRight, Loader2, Video, X } from 'lucide-react';
+import { Music, ArrowRight, Loader2, Video, X, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '../store/authStore';
 
 const PLATFORMS = {
   spotify: {
@@ -38,6 +39,8 @@ export const SyncPage = () => {
   const { platform } = useParams<{ platform: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const linkedAccounts = useAuthStore(state => state.linkedAccounts);
+  const account = linkedAccounts.find(a => a.platform === platform);
 
   const selectedPlatform = PLATFORMS[platform as keyof typeof PLATFORMS];
 
@@ -78,18 +81,40 @@ export const SyncPage = () => {
             <div className={`w-20 h-20 ${selectedPlatform.color} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl ${selectedPlatform.shadow} rotate-12`}>
                 <selectedPlatform.icon className="w-10 h-10 text-white -rotate-12" />
             </div>
-            <h2 className="text-3xl font-black tracking-tighter uppercase italic">Connect {selectedPlatform.name}</h2>
-            <p className="text-gray-400">{selectedPlatform.description}</p>
 
-            <button 
-                onClick={handleConnect}
-                disabled={loading}
-                className={`w-full py-4 ${selectedPlatform.color} ${selectedPlatform.hover} rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${selectedPlatform.shadow}`}
-            >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                <>Authorize Connection <ArrowRight className="w-5 h-5" /></>
-                )}
-            </button>
+            {account ? (
+              <>
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black tracking-tighter uppercase italic text-white">Connected as</h2>
+                  <div className="flex items-center justify-center gap-2 text-green-400 font-bold text-xl">
+                    <CheckCircle2 className="w-6 h-6" />
+                    {account.username}
+                  </div>
+                </div>
+                <p className="text-gray-400">Your {selectedPlatform.name} account is successfully synced with Zynk.</p>
+                <button 
+                    onClick={() => navigate('/discover')}
+                    className="w-full py-4 bg-gray-800 hover:bg-gray-700 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl"
+                >
+                    Back to Discovery
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-3xl font-black tracking-tighter uppercase italic text-white">Connect {selectedPlatform.name}</h2>
+                <p className="text-gray-400">{selectedPlatform.description}</p>
+
+                <button 
+                    onClick={handleConnect}
+                    disabled={loading}
+                    className={`w-full py-4 ${selectedPlatform.color} ${selectedPlatform.hover} rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${selectedPlatform.shadow}`}
+                >
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                    <>Authorize Connection <ArrowRight className="w-5 h-5" /></>
+                    )}
+                </button>
+              </>
+            )}
         </div>
       </motion.div>
     </div>

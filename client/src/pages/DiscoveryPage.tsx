@@ -115,20 +115,32 @@ export const DiscoveryPage = () => {
              { id: 'spotify', icon: Music, color: 'text-green-500', label: 'Spotify' },
              { id: 'youtube', icon: Video, color: 'text-red-500', label: 'YT Music' },
              { id: 'apple', icon: AppleMusicIcon, color: 'text-pink-500', label: 'Apple' }
-           ].map(p => (
-             <button
-                key={p.id}
-                onClick={() => navigate(`/sync/${p.id}`)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  isPlatformLinked(p.id) 
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' 
-                  : 'bg-black/40 text-gray-500 border border-transparent hover:border-gray-700'
-                }`}
-             >
-                {isPlatformLinked(p.id) ? <CheckCircle2 className="w-3 h-3" /> : <p.icon className={`w-3 h-3 ${p.color}`} />}
-                {p.label}
-             </button>
-           ))}
+           ].map(p => {
+             const account = linkedAccounts.find(a => a.platform === p.id);
+             return (
+               <button
+                  key={p.id}
+                  onClick={() => navigate(`/sync/${p.id}`)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    account 
+                    ? 'bg-green-600/10 text-green-400 border border-green-500/30' 
+                    : 'bg-black/40 text-gray-500 border border-transparent hover:border-gray-700'
+                  }`}
+               >
+                  {account ? (
+                    <>
+                      <Music className="w-3 h-3 text-green-500" />
+                      <span>{account.username}</span>
+                    </>
+                  ) : (
+                    <>
+                      <p.icon className={`w-3 h-3 ${p.color}`} />
+                      {p.label}
+                    </>
+                  )}
+               </button>
+             );
+           })}
         </div>
       </div>
 
