@@ -24,16 +24,20 @@ export const CatalogPage = () => {
   useEffect(() => {
     if (activeTab === 'internal') {
       const fetchSongs = async () => {
+        setLoading(true);
         try {
           const res = await api.get('/songs');
           setInternalSongs(res.data);
           setView('internal');
         } catch (err) {
           console.error('Failed to fetch internal songs', err);
+        } finally {
+          setLoading(false);
         }
       };
       fetchSongs();
     } else {
+      setView('external-artists'); // Ensure view changes to external
       fetchTopArtists();
     }
   }, [activeTab]);
