@@ -1,36 +1,47 @@
 const { Pool } = require('pg');
-require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
+require('dotenv').config();
 
 console.log('Zynk: Initializing Database Connections...');
 
-// Local Database Pool
-const localPool = new Pool({
-  connectionString: process.env.LOCAL_DATABASE_URL,
-});
+let localPool = null;
+let supabasePool = null;
 
-// Supabase Database Pool
-const supabasePool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+// Initialize Local Database Pool (Only if URL is provided)
+if (process.env.LOCAL_DATABASE_URL) {
+  localPool = new Pool({
+    connectionString: process.env.LOCAL_DATABASE_URL,
+  });
+  localPool.on('error', (err) => console.error('Zynk: Local DB Pool Error', err));
+  console.log('Zynk: Local DB pool initialized.');
+}
 
-// Test connections
-localPool.connect((err) => {
-  if (err) console.error('Zynk: Local DB connection error!', err.stack);
-  else console.log('Zynk: Local DB connected successfully.');
-});
-
-supabasePool.connect((err) => {
-  if (err) console.error('Zynk: Supabase DB connection error!', err.stack);
-  else console.log('Zynk: Supabase DB connected successfully.');
-});
+// Initialize Supabase Database Pool
+if (process.env.DATABASE_URL) {
+  supabasePool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 5000, // 5 second timeout
+  });
+  supabasePool.on('error', (err) => console.error('Zynk: Supabase DB Pool Error', err));
+  console.log('Zynk: Supabase DB pool initialized.');
+} else {
+  console.warn('Zynk: DATABASE_URL is missing. Supabase connection will not be available.');
+}
 
 module.exports = {
-  // Default query uses Supabase, but you can specify which pool to use
-  query: (text, params, useLocal = false) => {
+  query: async (text, params, useLocal = false) => {
     const pool = useLocal ? localPool : supabasePool;
-    console.log(`Zynk DB Query [${useLocal ? 'Local' : 'Supabase'}]:`, text, params || '');
-    return pool.query(text, params);
+    
+    if (!pool) {
+      throw new Error(`Database pool [${useLocal ? 'Local' : 'Supabase'}] is not initialized.`);
+    }
+
+    try {
+      return await pool.query(text, params);
+    } catch (err) {
+      console.error(`Zynk DB Query Error [${useLocal ? 'Local' : 'Supabase'}]:`, err.message);
+      throw err;
+    }
   },
   localPool,
   supabasePool,
