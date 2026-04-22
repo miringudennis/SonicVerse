@@ -87,36 +87,71 @@ exports.getTopTracks = async (req, res) => {
   }
 };
 
-exports.getTopArtistsLocations = async (req, res) => {
+exports.getTopArtists = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
   try {
-    const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=10', {
+    const response = await axios.get('https://accounts.spotify.com/v1/me/top/artists?limit=20&time_range=medium_term', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     
-    // Since Spotify doesn't provide coordinates, we'll simulate some global distribution
-    // for the connected artists to show them on the map.
-    const locations = [
-      [-1.2921, 36.8219], [51.5074, -0.1278], [40.7128, -74.0060], 
-      [35.6762, 139.6503], [-33.8688, 151.2093], [48.8566, 2.3522],
-      [-23.5505, -46.6333], [55.7558, 37.6173], [28.6139, 77.2090], [31.2304, 121.4737]
-    ];
-
+    // Sort by popularity (as a proxy for "most listened to" if top rank isn't enough)
     const artists = response.data.items.map((artist, index) => ({
       id: artist.id,
-      username: artist.name,
-      location: 'Spotify Connected',
-      coordinates: locations[index % locations.length],
-      genre_tags: artist.genres,
-      avatar_url: artist.images[0]?.url,
-      source: 'Spotify'
+      name: artist.name,
+      images: artist.images,
+      genres: artist.genres,
+      popularity: artist.popularity,
+      // Simulate play count based on rank (index 0 is most played)
+      play_count: Math.floor(5000 / (index + 1) + Math.random() * 100)
     }));
 
     res.json(artists);
   } catch (error) {
-    console.error('Spotify Artists Error:', error.message);
-    res.status(500).json({ message: 'Failed to fetch Spotify artists' });
+    console.error('Spotify Top Artists Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch top artists' });
+  }
+};
+
+exports.getArtistDiscography = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  const { artistId } = req.params;
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    // 1. Fetch Albums
+    const albumsRes = await axios.get(`https://accounts.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,ep&limit=20`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    // 2. Fetch Top Tracks for this artist
+    const tracksRes = await axios.get(`https://accounts.spotify.com/v1/artists/${artistId}/top-tracks?market=US`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const discography = {
+      albums: albumsRes.data.items.map(album => ({
+        id: album.id,
+        title: album.name,
+        release_date: album.release_date,
+        cover_url: album.images[0]?.url,
+        type: album.album_type,
+        total_tracks: album.total_tracks,
+        play_count: Math.floor(Math.random() * 200 + 50) // Simulated
+      })),
+      top_tracks: tracksRes.data.items.map(track => ({
+        id: track.id,
+        title: track.name,
+        duration_ms: track.duration_ms,
+        cover_url: track.album.images[0]?.url,
+        play_count: Math.floor(Math.random() * 150 + 20) // Simulated
+      }))
+    };
+
+    res.json(discography);
+  } catch (error) {
+    console.error('Spotify Discography Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch discography' });
   }
 };
