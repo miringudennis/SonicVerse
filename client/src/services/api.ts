@@ -15,7 +15,7 @@ const api = axios.create({
   baseURL: getBaseURL(),
 });
 
-console.log('Zynk API Base URL:', api.defaults.baseURL);
+console.log('SonicVerse API Base URL:', api.defaults.baseURL);
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');

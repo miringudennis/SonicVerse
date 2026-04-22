@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-console.log('Zynk: Initializing Database Connections...');
+console.log('SonicVerse: Initializing Database Connections...');
 
 let localPool = null;
 let supabasePool = null;

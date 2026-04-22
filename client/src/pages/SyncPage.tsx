@@ -91,7 +91,7 @@ export const SyncPage = () => {
                     {account.username}
                   </div>
                 </div>
-                <p className="text-gray-400">Your {selectedPlatform.name} account is successfully synced with Zynk.</p>
+                <p className="text-gray-400">Your {selectedPlatform.name} account is successfully synced with SonicVerse.</p>
                 <button 
                     onClick={() => navigate('/discover')}
                     className="w-full py-4 bg-gray-800 hover:bg-gray-700 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl"
