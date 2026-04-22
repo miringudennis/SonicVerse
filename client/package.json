@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.104.0",
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.14.0",
     "d3": "^7.9.0",

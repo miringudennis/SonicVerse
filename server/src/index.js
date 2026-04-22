@@ -24,10 +24,20 @@ app.use(express.json());
 // Health Check
 app.get('/api/health', async (req, res) => {
   try {
-    const dbTest = await require('./models/db').query('SELECT NOW()');
-    res.json({ status: 'ok', server: 'online', db: 'connected', time: dbTest.rows[0].now });
+    const db = require('./models/db');
+    const supabaseTest = await db.query('SELECT NOW()');
+    const localTest = await db.query('SELECT NOW()', [], true);
+    
+    res.json({ 
+      status: 'ok', 
+      server: 'online', 
+      db_supabase: 'connected', 
+      db_local: 'connected',
+      time_supabase: supabaseTest.rows[0].now,
+      time_local: localTest.rows[0].now
+    });
   } catch (err) {
-    res.status(500).json({ status: 'error', db: 'disconnected', message: err.message });
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 
@@ -48,5 +58,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`SonicVerse Server running on port ${PORT}`);
+  console.log(`Zynk Server running on port ${PORT}`);
 });
