@@ -97,8 +97,6 @@ export const DiscoveryPage = () => {
     fetchGraphData(nextMood);
   };
 
-  const isPlatformLinked = (id: string) => linkedAccounts.some(a => a.platform === id);
-
   return (
     <div className="flex flex-col gap-8 py-4 text-white">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
@@ -199,6 +197,12 @@ export const DiscoveryPage = () => {
         <div className="absolute bottom-8 left-8 flex items-center gap-6 text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-black/20 backdrop-blur px-4 py-2 rounded-full border border-white/5 z-10">
            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_#2563eb]" /> SonicVerse</div>
            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#10b981]" /> Linked Library</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+1]" /> Linked Library</div>
         </div>
       </div>
     </div>

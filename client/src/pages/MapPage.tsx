@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
-import { Loader2, Music, Video, Play as AppleMusicIcon } from 'lucide-react';
+import { Loader2, Music } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 // Fix for default marker icons in React Leaflet

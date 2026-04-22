@@ -68,8 +68,6 @@ export const CatalogPage = () => {
     });
   }, [activeTab, internalSongs, externalSongs, search, selectedSource]);
 
-  const sources = ['All', ...Array.from(new Set(externalSongs.map(s => s.source)))];
-
   return (
     <div className="py-8">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
@@ -225,6 +223,12 @@ export const CatalogPage = () => {
          <div className="flex items-center gap-3 px-6 py-3 bg-black/40 rounded-2xl border border-white/5">
             <CheckCircle2 className="w-4 h-4 text-green-500" />
             <span className="text-xs font-black uppercase tracking-widest text-gray-300">Intelligent Sync Active</span>
+         </div>
+      </div>
+    </div>
+  );
+};
+ray-300">Intelligent Sync Active</span>
          </div>
       </div>
     </div>
