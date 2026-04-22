@@ -10,7 +10,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import api from '../services/api';
-import { Loader2, Sparkles, Filter, Music, CheckCircle2, Video, Play as AppleMusicIcon } from 'lucide-react';
+import { Loader2, Sparkles, Filter, Music, Video, Play as AppleMusicIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
@@ -197,12 +197,6 @@ export const DiscoveryPage = () => {
         <div className="absolute bottom-8 left-8 flex items-center gap-6 text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-black/20 backdrop-blur px-4 py-2 rounded-full border border-white/5 z-10">
            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_#2563eb]" /> SonicVerse</div>
            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#10b981]" /> Linked Library</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-1]" /> Linked Library</div>
         </div>
       </div>
     </div>

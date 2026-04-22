@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Play, Plus, Search, Globe, Link2, Music, CheckCircle2, Video } from 'lucide-react';
+import { Play, Plus, Search, Globe, Link2, Music, CheckCircle2, Loader2 } from 'lucide-react';
+
 import api from '../services/api';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
@@ -223,12 +224,6 @@ export const CatalogPage = () => {
          <div className="flex items-center gap-3 px-6 py-3 bg-black/40 rounded-2xl border border-white/5">
             <CheckCircle2 className="w-4 h-4 text-green-500" />
             <span className="text-xs font-black uppercase tracking-widest text-gray-300">Intelligent Sync Active</span>
-         </div>
-      </div>
-    </div>
-  );
-};
-ray-300">Intelligent Sync Active</span>
          </div>
       </div>
     </div>
