@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Play, Plus, Search, Globe, Link2, Music, CheckCircle2, Loader2, User, ArrowLeft, Disc, Clock, BarChart3 } from 'lucide-react';
+import { Play, Plus, Search, Globe, Link2, Music, CheckCircle2, Loader2, ArrowLeft, Disc, Clock, BarChart3 } from 'lucide-react';
 import api from '../services/api';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
