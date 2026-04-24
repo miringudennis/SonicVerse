@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Play, 
-  Search, 
   Link2, 
   Music, 
   Loader2, 
@@ -9,7 +8,6 @@ import {
   Disc, 
   Clock, 
   TrendingUp, 
-  Calendar,
   Layers,
   Users,
   ExternalLink,
