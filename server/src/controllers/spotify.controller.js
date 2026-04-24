@@ -165,15 +165,17 @@ exports.getArtistDiscography = async (req, res) => {
         cover_url: album.images[0]?.url,
         type: album.album_type,
         total_tracks: album.total_tracks,
-        play_count: Math.floor(Math.random() * 200 + 50) // Simulated
-      })),
+        play_count: Math.floor(Math.random() * 2000 + 500) // Simulated library plays
+      })).sort((a, b) => b.play_count - a.play_count),
       top_tracks: tracksRes.data.items.map(track => ({
         id: track.id,
         title: track.name,
         duration_ms: track.duration_ms,
         cover_url: track.album.images[0]?.url,
-        play_count: Math.floor(Math.random() * 150 + 20) // Simulated
-      }))
+        artist_name: track.artists[0].name,
+        source: 'Spotify',
+        play_count: Math.floor(Math.random() * 1500 + 200) // Simulated library plays
+      })).sort((a, b) => b.play_count - a.play_count)
     };
 
     res.json(discography);
