@@ -92,7 +92,7 @@ exports.getTopArtists = async (req, res) => {
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
   try {
-    const response = await axios.get('https://accounts.spotify.com/v1/me/top/artists?limit=20&time_range=medium_term', {
+    const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=20&time_range=medium_term', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     
@@ -114,6 +114,33 @@ exports.getTopArtists = async (req, res) => {
   }
 };
 
+exports.getSavedTracks = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    const response = await axios.get('https://api.spotify.com/v1/me/tracks?limit=20', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    
+    const tracks = response.data.items.map(item => ({
+      id: item.track.id,
+      title: item.track.name,
+      artist_name: item.track.artists[0].name,
+      cover_url: item.track.album.images[0]?.url,
+      isExternal: true,
+      source: 'Spotify',
+      duration_ms: item.track.duration_ms,
+      mood_tags: ['Library', 'Spotify']
+    }));
+
+    res.json(tracks);
+  } catch (error) {
+    console.error('Spotify Saved Tracks Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch saved tracks' });
+  }
+};
+
 exports.getArtistDiscography = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   const { artistId } = req.params;
@@ -121,12 +148,12 @@ exports.getArtistDiscography = async (req, res) => {
 
   try {
     // 1. Fetch Albums
-    const albumsRes = await axios.get(`https://accounts.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,ep&limit=20`, {
+    const albumsRes = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,ep&limit=20`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
     // 2. Fetch Top Tracks for this artist
-    const tracksRes = await axios.get(`https://accounts.spotify.com/v1/artists/${artistId}/top-tracks?market=US`, {
+    const tracksRes = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
