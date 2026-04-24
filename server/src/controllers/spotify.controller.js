@@ -147,15 +147,21 @@ exports.getArtistDiscography = async (req, res) => {
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
   try {
-    // 1. Fetch Albums
-    const albumsRes = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,ep&limit=20`, {
+    // Fetch user profile to get their country (market)
+    const userRes = await axios.get('https://api.spotify.com/v1/me', {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
+    const market = userRes.data.country || 'US';
 
-    // 2. Fetch Top Tracks for this artist
-    const tracksRes = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
+    // Parallelize requests for better performance
+    const [albumsRes, tracksRes] = await Promise.all([
+      axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,ep&limit=20`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }),
+      axios.get(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=${market}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+    ]);
 
     const discography = {
       albums: albumsRes.data.items.map(album => ({
@@ -180,8 +186,12 @@ exports.getArtistDiscography = async (req, res) => {
 
     res.json(discography);
   } catch (error) {
-    console.error('Spotify Discography Error:', error.message);
-    res.status(500).json({ message: 'Failed to fetch discography' });
+    // Log detailed Spotify error for debugging
+    console.error('Spotify Discography Error Details:', error.response?.data || error.message);
+    res.status(500).json({ 
+      message: 'Failed to fetch discography',
+      details: error.response?.data?.error?.message || error.message
+    });
   }
 };
 
