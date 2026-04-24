@@ -167,6 +167,47 @@ exports.getPlaylists = async (req, res) => {
     }
 };
 
+exports.getRecommendations = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    // 1. Get seeds from top tracks and artists
+    const [tracksRes, artistsRes] = await Promise.all([
+      axios.get('https://api.spotify.com/v1/me/top/tracks?limit=3', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }),
+      axios.get('https://api.spotify.com/v1/me/top/artists?limit=2', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+    ]);
+
+    const seedTracks = tracksRes.data.items.map(t => t.id).join(',');
+    const seedArtists = artistsRes.data.items.map(a => a.id).join(',');
+
+    // 2. Fetch recommendations
+    const response = await axios.get(`https://api.spotify.com/v1/recommendations?limit=20&seed_tracks=${seedTracks}&seed_artists=${seedArtists}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const recommendations = response.data.tracks.map(track => ({
+      id: track.id,
+      title: track.name,
+      artist_name: track.artists[0].name,
+      artist_id: track.artists[0].id,
+      cover_url: track.album.images[0]?.url,
+      preview_url: track.preview_url,
+      external_url: track.external_urls.spotify,
+      source: 'Spotify'
+    }));
+
+    res.json(recommendations);
+  } catch (error) {
+    console.error('Spotify Recommendations Error:', error.response?.data || error.message);
+    res.status(500).json({ message: 'Failed to fetch recommendations' });
+  }
+};
+
 exports.getArtistDiscography = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   const { artistId } = req.params;
