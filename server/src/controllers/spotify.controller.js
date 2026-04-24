@@ -167,7 +167,7 @@ exports.getArtistDiscography = async (req, res) => {
         total_tracks: album.total_tracks,
         play_count: Math.floor(Math.random() * 2000 + 500) // Simulated library plays
       })).sort((a, b) => b.play_count - a.play_count),
-      top_tracks: tracksRes.data.items.map(track => ({
+      top_tracks: tracksRes.data.tracks.map(track => ({
         id: track.id,
         title: track.name,
         duration_ms: track.duration_ms,
