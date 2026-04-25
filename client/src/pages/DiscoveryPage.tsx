@@ -52,7 +52,11 @@ export const DiscoveryPage = () => {
       setView('results');
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
-      setError('Neural algorithm failed to generate seeds. Check your Spotify connection.');
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Spotify session expired. Please re-sync your account.');
+      } else {
+        setError('Neural algorithm failed to generate seeds. Check your Spotify connection.');
+      }
     } finally {
       setLoading(false);
     }
@@ -151,7 +155,25 @@ export const DiscoveryPage = () => {
                     <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">Connect at least one platform to begin</p>
                 )}
                 {error && (
-                    <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">{error}</p>
+                    <div className="mt-8 flex flex-col items-center gap-4">
+                        <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">{error}</p>
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={fetchRecommendations}
+                                className="px-6 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                            >
+                                Retry
+                            </button>
+                            {(error.includes('expired') || error.includes('session')) && (
+                                <button 
+                                    onClick={() => navigate('/sync/spotify')}
+                                    className="px-6 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
+                                >
+                                    Re-sync Spotify
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
           </motion.div>

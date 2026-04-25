@@ -61,7 +61,11 @@ export const DashboardPage = () => {
       setRecommendations(res.data.slice(0, 4)); // Only show top 4 on dashboard
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
-      setError('Failed to load insights');
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Spotify session expired. Please re-connect.');
+      } else {
+        setError('Failed to load neural insights. Check your connection.');
+      }
     } finally {
       setLoading(false);
     }
@@ -184,7 +188,23 @@ export const DashboardPage = () => {
         ) : error ? (
           <div className="bg-red-500/5 p-8 rounded-[2.5rem] border border-red-500/20 flex flex-col items-center text-center">
              <AlertCircle className="w-8 h-8 text-red-500 mb-4 opacity-50" />
-             <p className="text-red-400 text-xs font-black uppercase tracking-widest">{error}</p>
+             <p className="text-red-400 text-xs font-black uppercase tracking-widest mb-6">{error}</p>
+             <div className="flex gap-4">
+                <button 
+                  onClick={fetchRecommendations}
+                  className="px-6 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                >
+                  Retry
+                </button>
+                {(error.includes('expired') || error.includes('token')) && (
+                  <Link 
+                    to="/sync/spotify"
+                    className="px-6 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
+                  >
+                    Re-connect
+                  </Link>
+                )}
+             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -185,8 +185,18 @@ exports.getRecommendations = async (req, res) => {
     const seedTracks = tracksRes.data.items.map(t => t.id).join(',');
     const seedArtists = artistsRes.data.items.map(a => a.id).join(',');
 
+    // If no history, use some default popular seeds to avoid 400 error
+    let finalSeedTracks = seedTracks;
+    let finalSeedArtists = seedArtists;
+    
+    if (!seedTracks && !seedArtists) {
+      // Default seeds: "Blinding Lights" by The Weeknd (track) and Daft Punk (artist)
+      finalSeedTracks = '0VjIjWm4v3vH6m2Yv96U3C'; 
+      finalSeedArtists = '4tZLSmRbcZ2ZgvSLS6Pz24';
+    }
+
     // 2. Fetch recommendations
-    const response = await axios.get(`https://api.spotify.com/v1/recommendations?limit=20&seed_tracks=${seedTracks}&seed_artists=${seedArtists}`, {
+    const response = await axios.get(`https://api.spotify.com/v1/recommendations?limit=20${finalSeedTracks ? `&seed_tracks=${finalSeedTracks}` : ''}${finalSeedArtists ? `&seed_artists=${finalSeedArtists}` : ''}`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
