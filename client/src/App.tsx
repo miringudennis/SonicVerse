@@ -11,29 +11,8 @@ import { CatalogPage } from './pages/CatalogPage';
 import { WelcomePage } from './pages/WelcomePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { MapPage } from './pages/MapPage';
+import { DashboardPage } from './pages/DashboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
-
-const Dashboard = () => (
-  <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-    <h1 className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-      SonicVerse
-    </h1>
-    <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-      The modular music platform for storytelling, discovery, and social creation.
-    </p>
-    <div className="flex flex-wrap gap-4 justify-center">
-        <Link to="/discover" className="px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition">
-          Explore Discovery Graph
-        </Link>
-        <Link to="/catalog" className="px-8 py-3 bg-blue-600 font-bold rounded-full hover:bg-blue-700 transition">
-          Explore Catalog
-        </Link>
-        <Link to="/story/demo" className="px-8 py-3 bg-gray-900 border border-gray-800 font-bold rounded-full hover:bg-gray-800 transition">
-          View Interactive Story
-        </Link>
-    </div>
-  </div>
-);
 
 export default function App() {
   return (
@@ -51,7 +30,7 @@ export default function App() {
         {/* Protected Application Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="discover" element={<DiscoveryPage />} />
             <Route path="catalog" element={<CatalogPage />} />
             <Route path="feed" element={<SocialFeedPage />} />

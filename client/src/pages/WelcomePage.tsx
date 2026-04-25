@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Music, Compass, LayoutGrid } from 'lucide-react';
+import { Music, Compass, LayoutGrid, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export const WelcomePage = () => {
@@ -53,53 +53,83 @@ export const WelcomePage = () => {
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <Link 
-            to="/catalog" 
-            className="group relative px-10 py-4 bg-blue-600 rounded-full font-bold text-lg flex items-center justify-center gap-2 overflow-hidden hover:bg-blue-700 transition-all active:scale-95"
+            to="/register" 
+            className="group relative px-10 py-4 bg-white text-black rounded-full font-bold text-lg flex items-center justify-center gap-2 overflow-hidden hover:scale-105 transition-all active:scale-95 shadow-2xl shadow-white/10"
           >
-            Enter Application
+            Get Started Free
           </Link>
           <Link 
             to="/discover" 
-            className="px-10 py-4 bg-gray-900 border border-gray-800 rounded-full font-bold text-lg hover:bg-gray-800 transition-colors"
+            className="px-10 py-4 bg-gray-900 border border-gray-800 text-white rounded-full font-bold text-lg hover:bg-gray-800 transition-colors"
           >
             Explore Discovery
           </Link>
         </div>
 
-        <div className="mt-24 relative w-full max-w-5xl aspect-video rounded-3xl border border-gray-800 bg-gradient-to-br from-gray-900 to-black overflow-hidden shadow-2xl shadow-blue-500/10">
-          <div className="absolute inset-0 flex items-center justify-center">
-             <div className="grid grid-cols-3 gap-8 p-12 w-full">
-                {[1,2,3].map(i => (
-                  <div key={i} className="aspect-square bg-gray-800/50 rounded-2xl animate-pulse" />
+        <div className="mt-24 relative w-full max-w-5xl aspect-video rounded-3xl border border-gray-800 bg-black overflow-hidden shadow-2xl shadow-blue-500/10 group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-purple-600/10" />
+          <div className="absolute inset-0 flex items-center justify-center p-8 md:p-12">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full h-full">
+                {[
+                  { title: 'Neon Nights', artist: 'Cyberwave', color: 'bg-blue-500' },
+                  { title: 'Ethereal', artist: 'Lumina', color: 'bg-purple-500' },
+                  { title: 'Void Ritual', artist: 'Dark Star', color: 'bg-pink-500' },
+                  { title: 'Solar Wind', artist: 'Helios', color: 'bg-orange-500' },
+                  { title: 'Digital Rain', artist: 'Matrix', color: 'bg-green-500' },
+                  { title: 'Pulse', artist: 'Synthetix', color: 'bg-red-500' },
+                  { title: 'Subzero', artist: 'Glacier', color: 'bg-cyan-500' },
+                  { title: 'Echoes', artist: 'Vast', color: 'bg-indigo-500' },
+                ].map((item, i) => (
+                  <div key={i} className={`relative group/item overflow-hidden rounded-2xl bg-gray-900 border border-gray-800 transition-all duration-500 hover:scale-[1.02] hover:border-white/20`}>
+                    <div className={`absolute inset-0 opacity-20 ${item.color} blur-3xl`} />
+                    <div className="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black via-black/20 to-transparent">
+                      <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">{item.artist}</p>
+                      <h4 className="text-sm font-black text-white truncate">{item.title}</h4>
+                    </div>
+                  </div>
                 ))}
              </div>
           </div>
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black to-transparent" />
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
         </div>
       </main>
 
       <section id="features" className="relative z-10 py-32 px-6 max-w-7xl mx-auto text-white">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl font-black mb-6 italic tracking-tighter uppercase">The Sonic Ecosystem</h2>
+          <p className="text-gray-400 max-w-xl mx-auto">More than just a player. A complete modular environment for the next era of music consumption.</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="space-y-4 p-8 rounded-3xl border border-gray-900 bg-gray-950/50 hover:border-blue-500/30 transition-colors group">
-            <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-              <Compass className="w-6 h-6" />
+          <div className="space-y-6 p-10 rounded-[2.5rem] border border-gray-900 bg-gray-950/50 hover:border-blue-500/30 transition-all group hover:-translate-y-2 duration-500">
+            <div className="w-16 h-16 bg-blue-600/10 rounded-3xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform border border-blue-500/20">
+              <Compass className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold">Global Discovery</h3>
-            <p className="text-gray-400">Navigate the sonic graph and find music that resonates with your soul from across the universe.</p>
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter">Neural Discovery</h3>
+            <p className="text-gray-400 leading-relaxed">Our proprietary algorithms analyze sonic DNA across platforms to find your next obsession before you do.</p>
+            <div className="pt-4 flex items-center gap-2 text-blue-500 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+              Learn More <ArrowRight className="w-3 h-3" />
+            </div>
           </div>
-          <div className="space-y-4 p-8 rounded-3xl border border-gray-900 bg-gray-950/50 hover:border-purple-500/30 transition-colors group">
-            <div className="w-12 h-12 bg-purple-600/10 rounded-2xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
-              <LayoutGrid className="w-6 h-6" />
+          <div className="space-y-6 p-10 rounded-[2.5rem] border border-gray-900 bg-gray-950/50 hover:border-purple-500/30 transition-all group hover:-translate-y-2 duration-500">
+            <div className="w-16 h-16 bg-purple-600/10 rounded-3xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform border border-purple-500/20">
+              <LayoutGrid className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold">Social Feed</h3>
-            <p className="text-gray-400">Share your stories and connect with other explorers in real-time through interactive posts.</p>
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter">Modular Catalog</h3>
+            <p className="text-gray-400 leading-relaxed">Sync Spotify, YouTube, and Apple Music into a single, cohesive interface. Your library, unified at last.</p>
+            <div className="pt-4 flex items-center gap-2 text-purple-500 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+              Explore Modules <ArrowRight className="w-3 h-3" />
+            </div>
           </div>
-          <div className="space-y-4 p-8 rounded-3xl border border-gray-900 bg-gray-950/50 hover:border-pink-500/30 transition-colors group">
-            <div className="w-12 h-12 bg-pink-600/10 rounded-2xl flex items-center justify-center text-pink-500 group-hover:scale-110 transition-transform">
-              <Music className="w-6 h-6" />
+          <div className="space-y-6 p-10 rounded-[2.5rem] border border-gray-900 bg-gray-950/50 hover:border-pink-500/30 transition-all group hover:-translate-y-2 duration-500">
+            <div className="w-16 h-16 bg-pink-600/10 rounded-3xl flex items-center justify-center text-pink-500 group-hover:scale-110 transition-transform border border-pink-500/20">
+              <Music className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold">Immersive Player</h3>
-            <p className="text-gray-400">A seamless playback experience that integrates perfectly with your social interactions.</p>
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter">Sonic Stories</h3>
+            <p className="text-gray-400 leading-relaxed">Create immersive, interactive narratives around your favorite tracks and share them with the universe.</p>
+            <div className="pt-4 flex items-center gap-2 text-pink-500 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+              Start Creating <ArrowRight className="w-3 h-3" />
+            </div>
           </div>
         </div>
       </section>
