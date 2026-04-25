@@ -1,6 +1,6 @@
 import { Component, type ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { Player } from './Player';
 
@@ -95,22 +95,34 @@ const UserDropdown = () => {
 };
 
 export const Layout = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { to: '/discover', icon: Compass, label: 'Discover' },
+    { to: '/catalog', icon: LayoutGrid, label: 'Catalog' },
+    { to: '/feed', icon: ShoppingCart, label: 'Feed' },
+    { to: '/story/demo', icon: Music, label: 'Stories' },
+    { to: '/map', icon: MapIcon, label: 'Map' },
+  ];
+
   return (
     <div className="min-h-screen bg-black text-white">
       <nav className="fixed top-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-md border-b border-gray-800 z-[1000] flex items-center justify-between px-6">
-        <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl text-blue-500">
-          <Music className="w-8 h-8" />
-          SonicVerse
-        </Link>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 hover:bg-gray-900 rounded-lg transition-colors text-gray-400 hover:text-white"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl text-blue-500">
+            <Music className="w-8 h-8" />
+            <span className="hidden xs:block">SonicVerse</span>
+          </Link>
+        </div>
 
         <div className="hidden md:flex items-center gap-8 text-gray-400 font-medium text-sm">
-          {[
-            { to: '/discover', icon: Compass, label: 'Discover' },
-            { to: '/catalog', icon: LayoutGrid, label: 'Catalog' },
-            { to: '/feed', icon: ShoppingCart, label: 'Feed' },
-            { to: '/story/demo', icon: Music, label: 'Stories' },
-            { to: '/map', icon: MapIcon, label: 'Map' },
-          ].map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -137,6 +149,30 @@ export const Layout = () => {
           <UserDropdown />
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[900] md:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="absolute top-16 left-0 right-0 bg-gray-900 border-b border-gray-800 py-6 px-6 flex flex-col gap-4 animate-in slide-in-from-top duration-300">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={({ isActive }) => 
+                  `flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                    isActive ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-900/20' : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`
+                }
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-lg">{item.label}</span>
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      )}
 
       <main className="pt-24 pb-32 px-6 max-w-7xl mx-auto">
         <ErrorBoundary fallback={<div className="p-10 border border-red-500 rounded bg-red-900/10 text-red-500">Route Component Crashed</div>}>
