@@ -96,7 +96,6 @@ const UserDropdown = () => {
 
 export const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const navLinks = [
     { to: '/discover', icon: Compass, label: 'Discover' },
@@ -156,22 +155,22 @@ export const Layout = () => {
 
       {/* Mobile Navigation Dropdown */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 top-16 bg-black z-[999] md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex flex-col p-6 gap-2">
+        <div className="fixed top-20 left-6 w-64 bg-gray-900 border border-gray-800 rounded-[2rem] shadow-2xl shadow-blue-500/10 z-[999] md:hidden animate-in fade-in slide-in-from-top-4 duration-300 overflow-hidden">
+          <div className="flex flex-col p-3 gap-1">
             {navLinks.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={({ isActive }) => 
-                  `flex items-center gap-4 p-4 rounded-2xl text-lg font-bold transition-all ${
-                    isActive ? 'bg-blue-600/10 text-white border border-blue-500/20' : 'text-gray-400 hover:bg-gray-900'
+                  `flex items-center gap-3 p-3.5 rounded-2xl text-sm font-bold transition-all ${
+                    isActive ? 'bg-blue-600/10 text-white' : 'text-gray-400 hover:bg-gray-800'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={`w-6 h-6 ${isActive ? 'text-blue-500' : ''}`} />
+                    <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : ''}`} />
                     {item.label}
                   </>
                 )}
