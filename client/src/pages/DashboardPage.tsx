@@ -61,8 +61,11 @@ export const DashboardPage = () => {
       setRecommendations(res.data.slice(0, 4)); // Only show top 4 on dashboard
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
+      const details = err.response?.data?.details;
       if (err.response?.status === 401 || err.response?.status === 403) {
         setError('Spotify session expired. Please re-connect.');
+      } else if (details) {
+        setError(`Neural Engine: ${details}`);
       } else {
         setError('Failed to load neural insights. Check your connection.');
       }

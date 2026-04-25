@@ -173,30 +173,51 @@ exports.getRecommendations = async (req, res) => {
 
   try {
     // 1. Get seeds from top tracks and artists
-    const [tracksRes, artistsRes] = await Promise.all([
-      axios.get('https://api.spotify.com/v1/me/top/tracks?limit=3', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }),
-      axios.get('https://api.spotify.com/v1/me/top/artists?limit=2', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      })
-    ]);
+    let tracksRes, artistsRes;
+    try {
+        [tracksRes, artistsRes] = await Promise.all([
+            axios.get('https://api.spotify.com/v1/me/top/tracks?limit=3', {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            }),
+            axios.get('https://api.spotify.com/v1/me/top/artists?limit=2', {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            })
+        ]);
+    } catch (seedError) {
+        console.error('Error fetching seeds for recommendations:', seedError.response?.data || seedError.message);
+        // If we can't get seeds, we'll just use fallbacks later
+        tracksRes = { data: { items: [] } };
+        artistsRes = { data: { items: [] } };
+    }
 
-    const seedTracks = tracksRes.data.items.map(t => t.id).join(',');
-    const seedArtists = artistsRes.data.items.map(a => a.id).join(',');
+    const seedTracks = tracksRes.data?.items?.map(t => t.id).join(',') || '';
+    const seedArtists = artistsRes.data?.items?.map(a => a.id).join(',') || '';
+
+    console.log('Seeds found - Tracks:', seedTracks || 'None', 'Artists:', seedArtists || 'None');
 
     // If no history, use some default popular seeds to avoid 400 error
     let finalSeedTracks = seedTracks;
     let finalSeedArtists = seedArtists;
+    let finalSeedGenres = '';
     
     if (!seedTracks && !seedArtists) {
-      // Default seeds: "Blinding Lights" by The Weeknd (track) and Daft Punk (artist)
-      finalSeedTracks = '0VjIjWm4v3vH6m2Yv96U3C'; 
-      finalSeedArtists = '4tZLSmRbcZ2ZgvSLS6Pz24';
+      console.log('No history found, using default seeds');
+      // Default seeds: Pop and Electronic genres if no tracks/artists
+      finalSeedGenres = 'pop,dance,electronic';
     }
 
     // 2. Fetch recommendations
-    const response = await axios.get(`https://api.spotify.com/v1/recommendations?limit=20${finalSeedTracks ? `&seed_tracks=${finalSeedTracks}` : ''}${finalSeedArtists ? `&seed_artists=${finalSeedArtists}` : ''}`, {
+    // Construct URL carefully: at least one seed is required
+    const params = new URLSearchParams();
+    params.append('limit', '20');
+    if (finalSeedTracks) params.append('seed_tracks', finalSeedTracks);
+    if (finalSeedArtists) params.append('seed_artists', finalSeedArtists);
+    if (finalSeedGenres) params.append('seed_genres', finalSeedGenres);
+
+    const url = `https://api.spotify.com/v1/recommendations?${params.toString()}`;
+    console.log('Fetching Spotify Recommendations from:', url);
+
+    const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
@@ -213,8 +234,11 @@ exports.getRecommendations = async (req, res) => {
 
     res.json(recommendations);
   } catch (error) {
-    console.error('Spotify Recommendations Error:', error.response?.data || error.message);
-    res.status(500).json({ message: 'Failed to fetch recommendations' });
+    console.error('Spotify Recommendations Final Error:', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({ 
+      message: 'Failed to fetch recommendations',
+      details: error.response?.data?.error?.message || error.message
+    });
   }
 };
 

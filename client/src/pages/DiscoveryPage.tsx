@@ -52,8 +52,11 @@ export const DiscoveryPage = () => {
       setView('results');
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
+      const details = err.response?.data?.details;
       if (err.response?.status === 401 || err.response?.status === 403) {
         setError('Spotify session expired. Please re-sync your account.');
+      } else if (details) {
+        setError(`Algorithm Error: ${details}`);
       } else {
         setError('Neural algorithm failed to generate seeds. Check your Spotify connection.');
       }
