@@ -203,13 +203,16 @@ exports.getRecommendations = async (req, res) => {
     }
 
     // 2. Fetch recommendations
-    const response = await spotifyApi.get('/recommendations', {
-      params: {
-        limit: 20,
-        seed_tracks: seedTracks,
-        seed_artists: seedArtists,
-        seed_genres: seedGenres
-      }
+    // Use manual URL building to be absolutely sure about the structure
+    let url = 'https://api.spotify.com/v1/recommendations?limit=20';
+    if (seedTracks) url += `&seed_tracks=${seedTracks}`;
+    if (seedArtists) url += `&seed_artists=${seedArtists}`;
+    if (seedGenres) url += `&seed_genres=${seedGenres}`;
+
+    console.log('Final Spotify Request URL:', url);
+
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${accessToken}` }
     });
 
     const recommendations = response.data.tracks.map(track => ({

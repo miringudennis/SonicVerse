@@ -62,12 +62,14 @@ export const DashboardPage = () => {
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
       const details = err.response?.data?.details;
-      if (err.response?.status === 401 || err.response?.status === 403) {
+      const status = err.response?.status;
+      
+      if (status === 401 || status === 403) {
         setError('Spotify session expired. Please re-connect.');
       } else if (details) {
-        setError(`Neural Engine: ${details}`);
+        setError(`Neural Engine (${status}): ${details}`);
       } else {
-        setError('Failed to load neural insights. Check your connection.');
+        setError(`Failed to load neural insights. (Error: ${status || 'Network'})`);
       }
     } finally {
       setLoading(false);
