@@ -1,5 +1,5 @@
 import { Component, type ReactNode, useState, useRef, useEffect } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { Player } from './Player';
@@ -104,11 +104,33 @@ export const Layout = () => {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-gray-400 font-medium text-sm">
-          <Link to="/discover" className="hover:text-white flex items-center gap-1 transition-colors"><Compass className="w-4 h-4" /> Discover</Link>
-          <Link to="/catalog" className="hover:text-white flex items-center gap-1 transition-colors"><LayoutGrid className="w-4 h-4" /> Catalog</Link>
-          <Link to="/feed" className="hover:text-white flex items-center gap-1 transition-colors"><ShoppingCart className="w-4 h-4" /> Feed</Link>
-          <Link to="/story/demo" className="hover:text-white flex items-center gap-1 transition-colors"><Music className="w-4 h-4" /> Stories</Link>
-          <Link to="/map" className="hover:text-white flex items-center gap-1 transition-colors"><MapIcon className="w-4 h-4" /> Map</Link>
+          {[
+            { to: '/discover', icon: Compass, label: 'Discover' },
+            { to: '/catalog', icon: LayoutGrid, label: 'Catalog' },
+            { to: '/feed', icon: ShoppingCart, label: 'Feed' },
+            { to: '/story/demo', icon: Music, label: 'Stories' },
+            { to: '/map', icon: MapIcon, label: 'Map' },
+          ].map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => 
+                `relative flex items-center gap-2 transition-all duration-300 hover:text-white ${
+                  isActive ? 'text-white font-bold' : 'text-gray-400'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon className={`w-4 h-4 ${isActive ? 'text-blue-500' : ''}`} />
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute -bottom-[22px] left-0 right-0 h-[2px] bg-blue-500 rounded-full shadow-[0_0_8px_#3b82f6]" />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
         </div>
 
         <div className="flex items-center gap-4">

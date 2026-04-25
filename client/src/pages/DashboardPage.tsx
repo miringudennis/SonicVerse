@@ -10,26 +10,62 @@ import {
   ArrowRight, 
   Play, 
   Clock, 
-  Plus,
   MessageSquare,
-  TrendingUp,
-  Award
+  Loader2,
+  AlertCircle,
+  Link2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { usePlayerStore } from '../store/playerStore';
+import api from '../services/api';
 
 export const DashboardPage = () => {
   const user = useAuthStore((state) => state.user);
+  const linkedAccounts = useAuthStore((state) => state.linkedAccounts);
   const setSong = usePlayerStore((state) => state.setSong);
+  
   const [greeting, setGreeting] = useState('');
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isSpotifyLinked = linkedAccounts.some(a => a.platform === 'spotify');
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
-  }, []);
+
+    if (isSpotifyLinked) {
+      fetchRecommendations();
+    }
+  }, [isSpotifyLinked]);
+
+  const fetchRecommendations = async () => {
+    setLoading(true);
+    setError(null);
+    const token = localStorage.getItem('spotify_token');
+    
+    if (!token) {
+      setError('Spotify token missing');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await api.get('/spotify/recommendations', {
+        headers: { 'x-spotify-token': token }
+      });
+      setRecommendations(res.data.slice(0, 4)); // Only show top 4 on dashboard
+    } catch (err: any) {
+      console.error('Failed to fetch recommendations', err);
+      setError('Failed to load insights');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stats = [
     { label: 'Sonic Journey', value: '1,240m', icon: Clock, color: 'text-blue-500' },
@@ -41,14 +77,6 @@ export const DashboardPage = () => {
     { title: 'Discovery', desc: 'Find new sonic realms', icon: Compass, link: '/discover', color: 'bg-blue-600' },
     { title: 'Catalog', desc: 'Browse your library', icon: LayoutGrid, link: '/catalog', color: 'bg-purple-600' },
     { title: 'Sonic Map', desc: 'Explore global sounds', icon: MapIcon, link: '/map', color: 'bg-pink-600' },
-  ];
-
-  // Mock data for "Recently Played" or "Recommended"
-  const recommendations = [
-    { id: '1', title: 'Midnight City', artist_name: 'M83', cover_url: 'https://i.scdn.co/image/ab67616d0000b27387435c6e26214430e3223005', source: 'spotify' },
-    { id: '2', title: 'Starboy', artist_name: 'The Weeknd', cover_url: 'https://i.scdn.co/image/ab67616d0000b2734718e2b124f79258be7bc452', source: 'spotify' },
-    { id: '3', title: 'Blinding Lights', artist_name: 'The Weeknd', cover_url: 'https://i.scdn.co/image/ab67616d0000b273c5649addda9f0dad0c028a01', source: 'spotify' },
-    { id: '4', title: 'Levitating', artist_name: 'Dua Lipa', cover_url: 'https://i.scdn.co/image/ab67616d0000b273bdad1ca9631694f8ba16886c', source: 'spotify' },
   ];
 
   return (
@@ -121,73 +149,66 @@ export const DashboardPage = () => {
       </section>
 
       {/* Neural Insights / Recommendations */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-blue-500" /> Neural Insights
-            </h2>
-            <Link to="/discover" className="text-xs font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors">View All</Link>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {recommendations.map((track) => (
-              <div key={track.id} className="group flex items-center gap-4 bg-gray-900/40 p-4 rounded-3xl border border-gray-800/50 hover:bg-gray-800/60 transition-all">
-                <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-2xl">
-                  <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  <button 
-                    onClick={() => setSong(track as any)}
-                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Play className="w-8 h-8 text-white fill-current" />
-                  </button>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-black text-white truncate">{track.title}</h4>
-                  <p className="text-gray-500 text-xs font-bold uppercase truncate">{track.artist_name}</p>
-                </div>
-                <button className="p-2 rounded-full bg-gray-800 text-gray-400 hover:text-white transition-colors">
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-8">
+      <section className="space-y-8">
+        <div className="flex items-center justify-between">
           <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-purple-500" /> Community
+            <Sparkles className="w-6 h-6 text-blue-500" /> Neural Insights
           </h2>
-          <div className="bg-gray-900/40 rounded-[2.5rem] border border-gray-800/50 p-6 space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-white">
-                    <span className="text-blue-400">@explorer_{i}</span> shared a new story
-                  </p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
-                </div>
-              </div>
-            ))}
+          <Link to="/discover" className="text-xs font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors">View All</Link>
+        </div>
+        
+        {!isSpotifyLinked ? (
+          <div className="bg-gray-900/40 p-12 rounded-[2.5rem] border border-gray-800/50 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center mb-6 border border-green-500/20">
+              <Link2 className="w-8 h-8 text-green-500" />
+            </div>
+            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tighter">Spotify Not Connected</h3>
+            <p className="text-gray-500 text-sm max-w-sm mb-8 leading-relaxed">
+              Connect your Spotify account to enable our neural engine to analyze your sonic DNA and suggest new frequencies.
+            </p>
             <Link 
-              to="/feed" 
-              className="block w-full py-3 bg-gray-800 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-700 transition-all text-center"
+              to="/sync/spotify"
+              className="px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
             >
-              Open Social Feed
+              Connect Spotify
             </Link>
           </div>
-
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2.5rem] p-6 text-white overflow-hidden relative group">
-            <Award className="absolute -bottom-4 -right-4 w-24 h-24 opacity-20 rotate-12 group-hover:scale-110 transition-transform" />
-            <h3 className="text-lg font-black uppercase italic tracking-tighter mb-2">Weekly Challenge</h3>
-            <p className="text-xs text-blue-100 mb-4 leading-relaxed">Discover 5 artists from a genre you've never explored before.</p>
-            <div className="w-full bg-blue-900/50 h-2 rounded-full mb-2 overflow-hidden">
-               <div className="bg-white h-full w-2/5" />
-            </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest">2 / 5 Completed</p>
+        ) : loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-gray-900/40 p-4 rounded-3xl border border-gray-800/50 h-32 animate-pulse flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-gray-700 animate-spin" />
+              </div>
+            ))}
           </div>
-        </div>
+        ) : error ? (
+          <div className="bg-red-500/5 p-8 rounded-[2.5rem] border border-red-500/20 flex flex-col items-center text-center">
+             <AlertCircle className="w-8 h-8 text-red-500 mb-4 opacity-50" />
+             <p className="text-red-400 text-xs font-black uppercase tracking-widest">{error}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {recommendations.map((track) => (
+              <div key={track.id} className="group flex flex-col bg-gray-900/40 p-4 rounded-3xl border border-gray-800/50 hover:bg-gray-800/60 transition-all">
+                <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-2xl">
+                  <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <button 
+                    onClick={() => setSong(track)}
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <div className="w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white">
+                      <Play className="w-6 h-6 fill-current" />
+                    </div>
+                  </button>
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-black text-white truncate text-sm">{track.title}</h4>
+                  <p className="text-gray-500 text-[10px] font-bold uppercase truncate">{track.artist_name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
