@@ -171,47 +171,10 @@ exports.getRecommendations = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
-  const spotifyApi = axios.create({
-    baseURL: 'https://api.spotify.com/v1',
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-
   try {
-    // 1. Attempt to get real seeds
-    let seedTracks = undefined;
-    let seedArtists = undefined;
-    let seedGenres = undefined;
-
-    try {
-      const [tracksResponse, artistsResponse] = await Promise.all([
-        spotifyApi.get('/me/top/tracks?limit=3'),
-        spotifyApi.get('/me/top/artists?limit=2')
-      ]);
-
-      const trackIds = tracksResponse.data.items.map(t => t.id).filter(id => !!id);
-      const artistIds = artistsResponse.data.items.map(a => a.id).filter(id => !!id);
-
-      if (trackIds.length > 0) seedTracks = trackIds.join(',');
-      if (artistIds.length > 0) seedArtists = artistIds.join(',');
-    } catch (err) {
-      console.warn('Could not fetch personalized seeds, using genre fallback');
-    }
-
-    // If no tracks or artists found, we MUST provide a genre seed
-    if (!seedTracks && !seedArtists) {
-      seedGenres = 'pop'; // Guaranteed valid genre
-    }
-
-    // 2. Fetch recommendations
-    // Use manual URL building to be absolutely sure about the structure
-    let url = 'https://api.spotify.com/v1/recommendations?limit=20';
-    if (seedTracks) url += `&seed_tracks=${seedTracks}`;
-    if (seedArtists) url += `&seed_artists=${seedArtists}`;
-    if (seedGenres) url += `&seed_genres=${seedGenres}`;
-
-    console.log('Final Spotify Request URL:', url);
-
-    const response = await axios.get(url, {
+    // 1. Force a simple request first to see if it works
+    const testUrl = 'https://api.spotify.com/v1/recommendations?limit=10&seed_genres=pop';
+    const response = await axios.get(testUrl, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
@@ -230,13 +193,11 @@ exports.getRecommendations = async (req, res) => {
   } catch (error) {
     const status = error.response?.status || 500;
     const data = error.response?.data;
-    console.error('Spotify Recommendations Final Error:', status, data || error.message);
-    
-    // Pass back as much info as possible to the frontend
+    console.error('CRITICAL: Neural Insight Failure:', status, data || error.message);
     res.status(status).json({ 
-      message: 'Failed to fetch recommendations',
+      message: 'Neural Engine Fault',
       details: data?.error?.message || error.message,
-      error_data: data
+      code: 'SPOTIFY_RECS_404_DEBUG'
     });
   }
 };
