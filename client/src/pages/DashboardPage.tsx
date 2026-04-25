@@ -55,7 +55,7 @@ export const DashboardPage = () => {
     }
 
     try {
-      const res = await api.get('/spotify/recommendations', {
+      const res = await api.get('/spotify/neural-insights', {
         headers: { 'x-spotify-token': token }
       });
       setRecommendations(res.data.slice(0, 4)); // Only show top 4 on dashboard

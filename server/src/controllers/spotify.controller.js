@@ -171,54 +171,45 @@ exports.getRecommendations = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
+  const spotifyApi = axios.create({
+    baseURL: 'https://api.spotify.com/v1',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
   try {
-    // 1. Get seeds from top tracks and artists
-    let tracksRes, artistsRes;
+    // 1. Attempt to get real seeds
+    let seedTracks = undefined;
+    let seedArtists = undefined;
+    let seedGenres = undefined;
+
     try {
-        [tracksRes, artistsRes] = await Promise.all([
-            axios.get('https://api.spotify.com/v1/me/top/tracks?limit=3', {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            }),
-            axios.get('https://api.spotify.com/v1/me/top/artists?limit=2', {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            })
-        ]);
-    } catch (seedError) {
-        console.error('Error fetching seeds for recommendations:', seedError.response?.data || seedError.message);
-        // If we can't get seeds, we'll just use fallbacks later
-        tracksRes = { data: { items: [] } };
-        artistsRes = { data: { items: [] } };
+      const [tracksResponse, artistsResponse] = await Promise.all([
+        spotifyApi.get('/me/top/tracks?limit=3'),
+        spotifyApi.get('/me/top/artists?limit=2')
+      ]);
+
+      const trackIds = tracksResponse.data.items.map(t => t.id).filter(id => !!id);
+      const artistIds = artistsResponse.data.items.map(a => a.id).filter(id => !!id);
+
+      if (trackIds.length > 0) seedTracks = trackIds.join(',');
+      if (artistIds.length > 0) seedArtists = artistIds.join(',');
+    } catch (err) {
+      console.warn('Could not fetch personalized seeds, using genre fallback');
     }
 
-    const seedTracks = tracksRes.data?.items?.map(t => t.id).join(',') || '';
-    const seedArtists = artistsRes.data?.items?.map(a => a.id).join(',') || '';
-
-    console.log('Seeds found - Tracks:', seedTracks || 'None', 'Artists:', seedArtists || 'None');
-
-    // If no history, use some default popular seeds to avoid 400 error
-    let finalSeedTracks = seedTracks;
-    let finalSeedArtists = seedArtists;
-    let finalSeedGenres = '';
-    
+    // If no tracks or artists found, we MUST provide a genre seed
     if (!seedTracks && !seedArtists) {
-      console.log('No history found, using default seeds');
-      // Default seeds: Pop and Electronic genres if no tracks/artists
-      finalSeedGenres = 'pop,dance,electronic';
+      seedGenres = 'pop'; // Guaranteed valid genre
     }
 
     // 2. Fetch recommendations
-    // Construct URL carefully: at least one seed is required
-    const params = new URLSearchParams();
-    params.append('limit', '20');
-    if (finalSeedTracks) params.append('seed_tracks', finalSeedTracks);
-    if (finalSeedArtists) params.append('seed_artists', finalSeedArtists);
-    if (finalSeedGenres) params.append('seed_genres', finalSeedGenres);
-
-    const url = `https://api.spotify.com/v1/recommendations?${params.toString()}`;
-    console.log('Fetching Spotify Recommendations from:', url);
-
-    const response = await axios.get(url, {
-      headers: { Authorization: `Bearer ${accessToken}` }
+    const response = await spotifyApi.get('/recommendations', {
+      params: {
+        limit: 20,
+        seed_tracks: seedTracks,
+        seed_artists: seedArtists,
+        seed_genres: seedGenres
+      }
     });
 
     const recommendations = response.data.tracks.map(track => ({
@@ -234,10 +225,15 @@ exports.getRecommendations = async (req, res) => {
 
     res.json(recommendations);
   } catch (error) {
-    console.error('Spotify Recommendations Final Error:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({ 
+    const status = error.response?.status || 500;
+    const data = error.response?.data;
+    console.error('Spotify Recommendations Final Error:', status, data || error.message);
+    
+    // Pass back as much info as possible to the frontend
+    res.status(status).json({ 
       message: 'Failed to fetch recommendations',
-      details: error.response?.data?.error?.message || error.message
+      details: data?.error?.message || error.message,
+      error_data: data
     });
   }
 };

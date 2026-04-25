@@ -10,7 +10,7 @@ router.get('/top-tracks', authMiddleware, spotifyController.getTopTracks);
 router.get('/top-artists', authMiddleware, spotifyController.getTopArtists);
 router.get('/recently-played', authMiddleware, spotifyController.getRecentlyPlayed);
 router.get('/playlists', authMiddleware, spotifyController.getPlaylists);
-router.get('/recommendations', authMiddleware, spotifyController.getRecommendations);
+router.get('/neural-insights', authMiddleware, spotifyController.getRecommendations);
 router.get('/artist/:artistId/discography', authMiddleware, spotifyController.getArtistDiscography);
 router.get('/top-artists-locations', authMiddleware, spotifyController.getTopArtistsLocations);
 

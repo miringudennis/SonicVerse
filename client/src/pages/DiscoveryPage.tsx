@@ -45,7 +45,7 @@ export const DiscoveryPage = () => {
     }
 
     try {
-      const res = await api.get('/spotify/recommendations', {
+      const res = await api.get('/spotify/neural-insights', {
         headers: { 'x-spotify-token': token }
       });
       setRecommendations(res.data);
