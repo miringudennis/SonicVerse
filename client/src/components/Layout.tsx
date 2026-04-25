@@ -96,8 +96,9 @@ const UserDropdown = () => {
 
 export const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const navItems = [
+  const navLinks = [
     { to: '/discover', icon: Compass, label: 'Discover' },
     { to: '/catalog', icon: LayoutGrid, label: 'Catalog' },
     { to: '/feed', icon: ShoppingCart, label: 'Feed' },
@@ -109,20 +110,23 @@ export const Layout = () => {
     <div className="min-h-screen bg-black text-white">
       <nav className="fixed top-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-md border-b border-gray-800 z-[1000] flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
+          {/* Mobile Menu Button */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 hover:bg-gray-900 rounded-lg transition-colors text-gray-400 hover:text-white"
+            className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
+
           <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl text-blue-500">
             <Music className="w-8 h-8" />
             <span className="hidden xs:block">SonicVerse</span>
           </Link>
         </div>
 
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8 text-gray-400 font-medium text-sm">
-          {navItems.map((item) => (
+          {navLinks.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -150,24 +154,27 @@ export const Layout = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Navigation Dropdown */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[900] md:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="absolute top-16 left-0 right-0 bg-gray-900 border-b border-gray-800 py-6 px-6 flex flex-col gap-4 animate-in slide-in-from-top duration-300">
-            {navItems.map((item) => (
+        <div className="fixed inset-0 top-16 bg-black z-[999] md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex flex-col p-6 gap-2">
+            {navLinks.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={({ isActive }) => 
-                  `flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                    isActive ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-900/20' : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800 hover:text-white'
+                  `flex items-center gap-4 p-4 rounded-2xl text-lg font-bold transition-all ${
+                    isActive ? 'bg-blue-600/10 text-white border border-blue-500/20' : 'text-gray-400 hover:bg-gray-900'
                   }`
                 }
               >
-                <item.icon className="w-5 h-5" />
-                <span className="text-lg">{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <item.icon className={`w-6 h-6 ${isActive ? 'text-blue-500' : ''}`} />
+                    {item.label}
+                  </>
+                )}
               </NavLink>
             ))}
           </div>
