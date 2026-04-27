@@ -64,6 +64,7 @@ export const CatalogPage = () => {
   
   const [selectedAlbum, setSelectedAlbum] = useState<any>(null);
   const [albumTracks, setAlbumTracks] = useState<any>(null);
+  const [albumLoading, setAlbumLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,9 +158,9 @@ export const CatalogPage = () => {
 
   const handleAlbumClick = async (album: any) => {
     setSelectedAlbum(album);
-    setLoading(true);
+    setAlbumLoading(true);
     setAlbumTracks(null);
-    setView('album-detail');
+    // Remove setView('album-detail') to keep it inside the phone
     try {
       const token = localStorage.getItem(`${activePlatform}_token`);
       if (token) {
@@ -171,7 +172,7 @@ export const CatalogPage = () => {
     } catch (err) {
       console.error('Failed to fetch album tracks', err);
     } finally {
-      setLoading(false);
+      setAlbumLoading(false);
     }
   };
 
@@ -429,25 +430,63 @@ export const CatalogPage = () => {
 
                 {/* Phone 3: Top Albums (NEW) */}
                 {activePlatform === 'spotify' && (
-                  <PhoneSection title="Saved Albums" icon={Disc} color="bg-purple-600">
-                    <div className="grid grid-cols-2 gap-3">
-                      {albums.map((album) => (
-                        <div 
-                          key={album.id} 
-                          onClick={() => handleAlbumClick(album)}
-                          className="flex flex-col bg-white/5 p-2 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                  <PhoneSection 
+                    title={selectedAlbum && !view.includes('detail') ? selectedAlbum.title : "Saved Albums"} 
+                    icon={Disc} 
+                    color="bg-purple-600"
+                  >
+                    {albumLoading ? (
+                      <div className="flex items-center justify-center py-20">
+                         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                      </div>
+                    ) : selectedAlbum && albumTracks && view === 'dashboard' ? (
+                      <div className="space-y-4">
+                        <button 
+                          onClick={() => {
+                            setSelectedAlbum(null);
+                            setAlbumTracks(null);
+                          }}
+                          className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 hover:text-white transition-colors"
                         >
-                          <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
-                             <img src={album.cover_url} className="w-full h-full object-cover" alt="" />
-                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Disc className="w-6 h-6 text-white" />
-                             </div>
-                          </div>
-                          <p className="text-[10px] font-bold text-white truncate px-1">{album.title}</p>
-                          <p className="text-[8px] text-gray-500 uppercase font-black truncate px-1">{album.artist_name}</p>
+                          <ArrowLeft className="w-3 h-3" /> Back to Albums
+                        </button>
+                        <div className="space-y-3">
+                          {albumTracks.tracks?.map((track: any, i: number) => (
+                            <div 
+                              key={track.id} 
+                              onClick={() => playSong(track)}
+                              className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                            >
+                              <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                                <p className="text-[9px] text-gray-500 uppercase font-black">{track.artist_name}</p>
+                              </div>
+                              <Play className="w-3 h-3 text-gray-700 group-hover:text-green-500" />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {albums.map((album) => (
+                          <div 
+                            key={album.id} 
+                            onClick={() => handleAlbumClick(album)}
+                            className="flex flex-col bg-white/5 p-2 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                          >
+                            <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
+                               <img src={album.cover_url} className="w-full h-full object-cover" alt="" />
+                               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Disc className="w-6 h-6 text-white" />
+                               </div>
+                            </div>
+                            <p className="text-[10px] font-bold text-white truncate px-1">{album.title}</p>
+                            <p className="text-[8px] text-gray-500 uppercase font-black truncate px-1">{album.artist_name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </PhoneSection>
                 )}
 
