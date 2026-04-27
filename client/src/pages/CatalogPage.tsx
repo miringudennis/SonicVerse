@@ -21,8 +21,7 @@ import {
   Library,
   Heart,
   Calendar,
-  Mic2,
-  ArrowRight
+  Mic2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -33,7 +32,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail';
 
-const PhoneSection = ({ title, icon: Icon, children, color, onShowMore }: any) => (
+const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
   <div className="flex flex-col h-[600px] w-[300px] shrink-0 bg-black rounded-[2.5rem] border-4 border-gray-900 shadow-2xl overflow-hidden relative group snap-center">
     {/* Content */}
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -44,14 +43,6 @@ const PhoneSection = ({ title, icon: Icon, children, color, onShowMore }: any) =
            </div>
            <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">{title}</h3>
         </div>
-        {onShowMore && (
-          <button 
-            onClick={onShowMore}
-            className="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors flex items-center gap-1"
-          >
-            More <ArrowRight className="w-3 h-3" />
-          </button>
-        )}
       </div>
       <div className="flex-1 overflow-y-auto px-4 pb-8 custom-scrollbar">
         {children}
@@ -394,13 +385,9 @@ export const CatalogPage = () => {
               <div className="w-screen relative left-1/2 -ml-[50vw] overflow-x-auto flex gap-6 py-12 px-12 custom-scrollbar snap-x snap-mandatory">
                 {/* Phone 1: Top Artists */}
                 <PhoneSection 
-                  title={selectedArtist && !view.includes('detail') ? selectedArtist.name : "Top Artists"} 
+                  title={selectedArtist && view === 'dashboard' ? selectedArtist.name : "Top Artists"} 
                   icon={Users} 
                   color="bg-blue-600"
-                  onShowMore={() => {
-                    if (selectedArtist) setView('artist-detail');
-                    else alert("Select an artist to see more details.");
-                  }}
                 >
                   {artistLoading ? (
                     <div className="flex items-center justify-center py-20">
@@ -417,6 +404,13 @@ export const CatalogPage = () => {
                       >
                         <ArrowLeft className="w-3 h-3" /> Back to Artists
                       </button>
+                      
+                      <div className="flex flex-col items-center text-center mb-6">
+                        <img src={selectedArtist.images?.[0]?.url} className="w-24 h-24 rounded-full object-cover mb-3 shadow-lg" alt="" />
+                        <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">{selectedArtist.name}</h4>
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{selectedArtist.genres?.[0]}</p>
+                      </div>
+
                       <div className="space-y-3">
                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Top Songs</p>
                         {discography.top_tracks?.map((track: any, i: number) => (
@@ -456,7 +450,7 @@ export const CatalogPage = () => {
                 </PhoneSection>
 
                 {/* Phone 2: Top Tracks */}
-                <PhoneSection title="Top Tracks" icon={TrendingUp} color="bg-green-600" onShowMore={() => alert("Comprehensive top tracks view coming soon!")}>
+                <PhoneSection title="Top Tracks" icon={TrendingUp} color="bg-green-600">
                    <div className="space-y-4">
                     {topTracks.map((track, i) => (
                       <div 
@@ -483,13 +477,9 @@ export const CatalogPage = () => {
                 {/* Phone 3: Top Albums (NEW) */}
                 {activePlatform === 'spotify' && (
                   <PhoneSection 
-                    title={selectedAlbum && !view.includes('detail') ? selectedAlbum.title : "Saved Albums"} 
+                    title={selectedAlbum && view === 'dashboard' ? selectedAlbum.title : "Saved Albums"} 
                     icon={Disc} 
                     color="bg-purple-600"
-                    onShowMore={() => {
-                      if (selectedAlbum) setView('album-detail');
-                      else alert("Select an album to see more details.");
-                    }}
                   >
                     {albumLoading ? (
                       <div className="flex items-center justify-center py-20">
@@ -506,6 +496,13 @@ export const CatalogPage = () => {
                         >
                           <ArrowLeft className="w-3 h-3" /> Back to Albums
                         </button>
+                        
+                        <div className="flex flex-col items-center text-center mb-6">
+                           <img src={selectedAlbum.cover_url} className="w-32 h-32 rounded-2xl object-cover mb-3 shadow-lg" alt="" />
+                           <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">{selectedAlbum.title}</h4>
+                           <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{selectedAlbum.artist_name}</p>
+                        </div>
+
                         <div className="space-y-3">
                           {albumTracks.tracks?.map((track: any, i: number) => (
                             <div 
@@ -547,7 +544,7 @@ export const CatalogPage = () => {
                 )}
 
                 {/* Phone 4: Recent History */}
-                <PhoneSection title="Recent Activity" icon={History} color="bg-red-600" onShowMore={() => alert("Detailed playback history coming soon!")}>
+                <PhoneSection title="Recent Activity" icon={History} color="bg-red-600">
                    <div className="space-y-4">
                     {recentTracks.map((track, i) => (
                       <div 
@@ -574,7 +571,7 @@ export const CatalogPage = () => {
                 </PhoneSection>
 
                  {/* Phone 5: Collections */}
-                 <PhoneSection title="Playlists" icon={Layers} color="bg-pink-600" onShowMore={() => alert("Full collections grid coming soon!")}>
+                 <PhoneSection title="Playlists" icon={Layers} color="bg-pink-600">
                     <div className="space-y-4">
                       {playlists.map((p) => (
                         <div 
