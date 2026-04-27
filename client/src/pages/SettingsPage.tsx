@@ -68,7 +68,7 @@ export const SettingsPage = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${user?.id}/${filename}`;
 
       const { error: uploadError } = await supabase.storage
         .from('profiles')
