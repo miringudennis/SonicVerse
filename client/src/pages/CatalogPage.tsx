@@ -408,12 +408,21 @@ export const CatalogPage = () => {
                       <div className="flex flex-col items-center text-center mb-6">
                         <img src={selectedArtist.images?.[0]?.url} className="w-24 h-24 rounded-full object-cover mb-3 shadow-lg" alt="" />
                         <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">{selectedArtist.name}</h4>
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{selectedArtist.genres?.[0]}</p>
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4">{selectedArtist.genres?.[0]}</p>
+                        
+                        <div className="w-full p-4 bg-white/5 rounded-2xl border border-white/5 text-left">
+                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">About on Spotify</p>
+                           <p className="text-[11px] text-gray-500 leading-relaxed">
+                             {selectedArtist.name} is a renowned artist in the {selectedArtist.genres?.join(', ')} scenes. 
+                             With a popularity score of {selectedArtist.popularity}% and over {selectedArtist.followers?.total?.toLocaleString() || 'thousands of'} followers, 
+                             they continue to influence the global music grid.
+                           </p>
+                        </div>
                       </div>
 
                       <div className="space-y-3">
-                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Top Songs</p>
-                        {discography.top_tracks?.map((track: any, i: number) => (
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 border-b border-white/5 pb-2">Top Signals</p>
+                        {discography.top_tracks?.slice(0, 5).map((track: any, i: number) => (
                           <div 
                             key={track.id} 
                             onClick={() => playSong(track)}
@@ -573,7 +582,7 @@ export const CatalogPage = () => {
                  {/* Phone 5: Collections */}
                  <PhoneSection title="Playlists" icon={Layers} color="bg-pink-600">
                     <div className="space-y-4">
-                      {playlists.map((p) => (
+                      {playlists.length > 0 ? playlists.map((p) => (
                         <div 
                           key={p.id} 
                           className="flex items-center gap-4 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
@@ -587,7 +596,12 @@ export const CatalogPage = () => {
                           </div>
                           <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-white" />
                         </div>
-                      ))}
+                      )) : (
+                        <div className="py-12 flex flex-col items-center justify-center text-center">
+                           <Layers className="w-8 h-8 text-gray-800 mb-4 opacity-20" />
+                           <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">No collections found in your archive</p>
+                        </div>
+                      )}
                     </div>
                  </PhoneSection>
               </div>

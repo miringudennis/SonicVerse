@@ -148,21 +148,26 @@ exports.getPlaylists = async (req, res) => {
     if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
   
     try {
-      const response = await axios.get('https://api.spotify.com/v1/me/playlists?limit=12', {
+      const response = await axios.get('https://api.spotify.com/v1/me/playlists?limit=20', {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
       
+      if (!response.data || !response.data.items) {
+        return res.json([]);
+      }
+
       const playlists = response.data.items.map(p => ({
         id: p.id,
         name: p.name,
-        description: p.description,
+        description: p.description || 'Curated Sonic Collection',
         cover_url: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-        track_count: p.tracks.total,
-        owner: p.owner.display_name
+        track_count: p.tracks?.total || 0,
+        owner: p.owner?.display_name || 'User'
       }));
   
       res.json(playlists);
     } catch (error) {
+      console.error('Spotify Playlists Error:', error.response?.data || error.message);
       res.status(500).json({ message: 'Failed to fetch playlists' });
     }
 };
