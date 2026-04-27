@@ -172,6 +172,44 @@ exports.getPlaylists = async (req, res) => {
     }
 };
 
+exports.getPlaylistTracks = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  const { playlistId } = req.params;
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=20`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    
+    const playlistResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const tracks = response.data.items.map(item => {
+      const track = item.track;
+      return {
+        id: track.id,
+        title: track.name,
+        artist_name: track.artists[0].name,
+        duration_ms: track.duration_ms,
+        cover_url: track.album?.images[0]?.url || playlistResponse.data.images?.[0]?.url,
+        isExternal: true,
+        source: 'Spotify'
+      };
+    });
+
+    res.json({
+      playlist_name: playlistResponse.data.name,
+      cover_url: playlistResponse.data.images?.[0]?.url,
+      tracks: tracks
+    });
+  } catch (error) {
+    console.error('Spotify Playlist Tracks Error:', error.response?.data || error.message);
+    res.status(500).json({ message: 'Failed to fetch playlist tracks' });
+  }
+};
+
 exports.getSavedAlbums = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });

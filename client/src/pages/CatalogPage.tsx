@@ -9,10 +9,10 @@ import {
   Clock, 
   TrendingUp, 
   Layers, 
-  Users, 
-  ExternalLink, 
-  History, 
-  AlertCircle, 
+  Users,
+  History,
+  AlertCircle,
+ 
   RefreshCcw,
   ShieldCheck,
   Video,
@@ -66,6 +66,10 @@ export const CatalogPage = () => {
   const [selectedAlbum, setSelectedAlbum] = useState<any>(null);
   const [albumTracks, setAlbumTracks] = useState<any>(null);
   const [albumLoading, setAlbumLoading] = useState(false);
+
+  const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
+  const [playlistTracks, setPlaylistTracks] = useState<any>(null);
+  const [playlistLoading, setPlaylistLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -174,6 +178,25 @@ export const CatalogPage = () => {
       console.error('Failed to fetch album tracks', err);
     } finally {
       setAlbumLoading(false);
+    }
+  };
+
+  const handlePlaylistClick = async (playlist: any) => {
+    setSelectedPlaylist(playlist);
+    setPlaylistLoading(true);
+    setPlaylistTracks(null);
+    try {
+      const token = localStorage.getItem(`${activePlatform}_token`);
+      if (token) {
+        const res = await api.get(`/${activePlatform}/playlist/${playlist.id}/tracks`, {
+          headers: { [`x-${activePlatform}-token`]: token }
+        });
+        setPlaylistTracks(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch playlist tracks', err);
+    } finally {
+      setPlaylistLoading(false);
     }
   };
 
@@ -580,29 +603,75 @@ export const CatalogPage = () => {
                 </PhoneSection>
 
                  {/* Phone 5: Collections */}
-                 <PhoneSection title="Playlists" icon={Layers} color="bg-pink-600">
-                    <div className="space-y-4">
-                      {playlists.length > 0 ? playlists.map((p) => (
-                        <div 
-                          key={p.id} 
-                          className="flex items-center gap-4 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                 <PhoneSection 
+                    title={selectedPlaylist && view === 'dashboard' ? selectedPlaylist.name : "Playlists"} 
+                    icon={Layers} 
+                    color="bg-pink-600"
+                 >
+                    {playlistLoading ? (
+                      <div className="flex items-center justify-center py-20">
+                         <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
+                      </div>
+                    ) : selectedPlaylist && playlistTracks && view === 'dashboard' ? (
+                      <div className="space-y-4">
+                        <button 
+                          onClick={() => {
+                            setSelectedPlaylist(null);
+                            setPlaylistTracks(null);
+                          }}
+                          className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 hover:text-white transition-colors"
                         >
-                          <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
-                             <img src={p.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-full h-full object-cover" alt="" />
-                          </div>
-                          <div className="flex-1 overflow-hidden">
-                            <p className="text-xs font-bold text-white truncate">{p.name}</p>
-                            <p className="text-[9px] text-gray-500 uppercase font-black">{p.track_count} Tracks</p>
-                          </div>
-                          <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                          <ArrowLeft className="w-3 h-3" /> Back to Playlists
+                        </button>
+                        
+                        <div className="flex flex-col items-center text-center mb-6">
+                           <img src={selectedPlaylist.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-32 h-32 rounded-2xl object-cover mb-3 shadow-lg" alt="" />
+                           <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">{selectedPlaylist.name}</h4>
+                           <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{selectedPlaylist.track_count} Tracks</p>
                         </div>
-                      )) : (
-                        <div className="py-12 flex flex-col items-center justify-center text-center">
-                           <Layers className="w-8 h-8 text-gray-800 mb-4 opacity-20" />
-                           <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">No collections found in your archive</p>
+
+                        <div className="space-y-3">
+                          {playlistTracks.tracks?.map((track: any, i: number) => (
+                            <div 
+                              key={track.id} 
+                              onClick={() => playSong(track)}
+                              className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                            >
+                              <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                                <p className="text-[9px] text-gray-500 uppercase font-black">{track.artist_name}</p>
+                              </div>
+                              <Play className="w-3 h-3 text-gray-700 group-hover:text-green-500" />
+                            </div>
+                          ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {playlists.length > 0 ? playlists.map((p) => (
+                          <div 
+                            key={p.id} 
+                            onClick={() => handlePlaylistClick(p)}
+                            className="flex items-center gap-4 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                          >
+                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
+                               <img src={p.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-full h-full object-cover" alt="" />
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                              <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                              <p className="text-[9px] text-gray-500 uppercase font-black">{p.track_count} Tracks</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                          </div>
+                        )) : (
+                          <div className="py-12 flex flex-col items-center justify-center text-center">
+                             <Layers className="w-8 h-8 text-gray-800 mb-4 opacity-20" />
+                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">No collections found in your archive</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                  </PhoneSection>
               </div>
             )}
