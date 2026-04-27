@@ -33,19 +33,7 @@ type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail';
 
 const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
-  <div className="flex flex-col h-[600px] w-full max-w-[320px] bg-black rounded-[3rem] border-[8px] border-gray-900 shadow-2xl overflow-hidden relative group">
-    {/* Status Bar */}
-    <div className="h-6 w-full flex justify-between items-center px-6 pt-2">
-      <span className="text-[10px] font-bold text-white">9:41</span>
-      <div className="flex gap-1">
-        <div className="w-3 h-3 rounded-full border border-white/20" />
-        <div className="w-3 h-3 rounded-full border border-white/20" />
-      </div>
-    </div>
-    
-    {/* Notch */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10" />
-
+  <div className="flex flex-col h-[600px] w-[300px] shrink-0 bg-black rounded-[2.5rem] border-4 border-gray-900 shadow-2xl overflow-hidden relative group snap-center">
     {/* Content */}
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="p-6 flex items-center justify-between">
@@ -59,11 +47,6 @@ const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
       <div className="flex-1 overflow-y-auto px-4 pb-8 custom-scrollbar">
         {children}
       </div>
-    </div>
-
-    {/* Home Indicator */}
-    <div className="h-6 w-full flex justify-center items-center">
-      <div className="w-24 h-1 bg-white/20 rounded-full" />
     </div>
   </div>
 );
@@ -397,7 +380,7 @@ export const CatalogPage = () => {
                 <p className="mt-4 text-gray-500 font-bold uppercase tracking-widest text-xs">Syncing with Neural Grid...</p>
               </div>
             ) : profile && (
-              <div className="flex flex-wrap justify-center gap-8 py-12">
+              <div className="w-full overflow-x-auto flex gap-6 py-12 px-2 custom-scrollbar snap-x snap-mandatory">
                 {/* Phone 1: Top Artists */}
                 <PhoneSection title="Top Artists" icon={Users} color="bg-blue-600">
                   <div className="space-y-4">
