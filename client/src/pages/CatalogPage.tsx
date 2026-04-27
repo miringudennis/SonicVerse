@@ -61,6 +61,7 @@ export const CatalogPage = () => {
   
   const [selectedArtist, setSelectedArtist] = useState<any>(null);
   const [discography, setDiscography] = useState<any>(null);
+  const [artistLoading, setArtistLoading] = useState(false);
   
   const [selectedAlbum, setSelectedAlbum] = useState<any>(null);
   const [albumTracks, setAlbumTracks] = useState<any>(null);
@@ -138,9 +139,9 @@ export const CatalogPage = () => {
 
   const handleArtistClick = async (artist: any) => {
     setSelectedArtist(artist);
-    setLoading(true);
+    setArtistLoading(true);
     setDiscography(null);
-    setView('artist-detail');
+    if (view !== 'dashboard') setView('artist-detail');
     try {
       const token = localStorage.getItem(`${activePlatform}_token`);
       if (token) {
@@ -152,7 +153,7 @@ export const CatalogPage = () => {
     } catch (err) {
       console.error('Failed to fetch discography', err);
     } finally {
-      setLoading(false);
+      setArtistLoading(false);
     }
   };
 
@@ -383,24 +384,62 @@ export const CatalogPage = () => {
             ) : profile && (
               <div className="w-screen relative left-1/2 -ml-[50vw] overflow-x-auto flex gap-6 py-12 px-12 custom-scrollbar snap-x snap-mandatory">
                 {/* Phone 1: Top Artists */}
-                <PhoneSection title="Top Artists" icon={Users} color="bg-blue-600">
-                  <div className="space-y-4">
-                    {topArtists.map((artist, i) => (
-                      <div 
-                        key={artist.id} 
-                        onClick={() => handleArtistClick(artist)}
-                        className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                <PhoneSection 
+                  title={selectedArtist && view === 'dashboard' ? selectedArtist.name : "Top Artists"} 
+                  icon={Users} 
+                  color="bg-blue-600"
+                >
+                  {artistLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                       <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                    </div>
+                  ) : selectedArtist && discography && view === 'dashboard' ? (
+                    <div className="space-y-4">
+                      <button 
+                        onClick={() => {
+                          setSelectedArtist(null);
+                          setDiscography(null);
+                        }}
+                        className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 hover:text-white transition-colors"
                       >
-                        <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
-                        <img src={artist.images?.[2]?.url} className="w-10 h-10 rounded-full object-cover" alt="" />
-                        <div className="flex-1 overflow-hidden">
-                          <p className="text-xs font-bold text-white truncate">{artist.name}</p>
-                          <p className="text-[9px] text-gray-500 uppercase font-black">{artist.genres?.[0] || 'Artist'}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
+                        <ArrowLeft className="w-3 h-3" /> Back to Artists
+                      </button>
+                      <div className="space-y-3">
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Top Songs</p>
+                        {discography.top_tracks?.map((track: any, i: number) => (
+                          <div 
+                            key={track.id} 
+                            onClick={() => playSong(track)}
+                            className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                          >
+                            <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
+                            <div className="flex-1 overflow-hidden">
+                              <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                            </div>
+                            <Play className="w-3 h-3 text-gray-700 group-hover:text-green-500" />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {topArtists.map((artist, i) => (
+                        <div 
+                          key={artist.id} 
+                          onClick={() => handleArtistClick(artist)}
+                          className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
+                        >
+                          <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
+                          <img src={artist.images?.[2]?.url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                          <div className="flex-1 overflow-hidden">
+                            <p className="text-xs font-bold text-white truncate">{artist.name}</p>
+                            <p className="text-[9px] text-gray-500 uppercase font-black">{artist.genres?.[0] || 'Artist'}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </PhoneSection>
 
                 {/* Phone 2: Top Tracks */}
