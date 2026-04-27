@@ -21,7 +21,8 @@ import {
   Library,
   Heart,
   Calendar,
-  Mic2
+  Mic2,
+  ArrowRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -32,7 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail';
 
-const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
+const PhoneSection = ({ title, icon: Icon, children, color, onShowMore }: any) => (
   <div className="flex flex-col h-[600px] w-[300px] shrink-0 bg-black rounded-[2.5rem] border-4 border-gray-900 shadow-2xl overflow-hidden relative group snap-center">
     {/* Content */}
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -43,6 +44,14 @@ const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
            </div>
            <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">{title}</h3>
         </div>
+        {onShowMore && (
+          <button 
+            onClick={onShowMore}
+            className="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors flex items-center gap-1"
+          >
+            More <ArrowRight className="w-3 h-3" />
+          </button>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto px-4 pb-8 custom-scrollbar">
         {children}
@@ -385,9 +394,13 @@ export const CatalogPage = () => {
               <div className="w-screen relative left-1/2 -ml-[50vw] overflow-x-auto flex gap-6 py-12 px-12 custom-scrollbar snap-x snap-mandatory">
                 {/* Phone 1: Top Artists */}
                 <PhoneSection 
-                  title={selectedArtist && view === 'dashboard' ? selectedArtist.name : "Top Artists"} 
+                  title={selectedArtist && !view.includes('detail') ? selectedArtist.name : "Top Artists"} 
                   icon={Users} 
                   color="bg-blue-600"
+                  onShowMore={() => {
+                    if (selectedArtist) setView('artist-detail');
+                    else alert("Select an artist to see more details.");
+                  }}
                 >
                   {artistLoading ? (
                     <div className="flex items-center justify-center py-20">
@@ -443,7 +456,7 @@ export const CatalogPage = () => {
                 </PhoneSection>
 
                 {/* Phone 2: Top Tracks */}
-                <PhoneSection title="Top Tracks" icon={TrendingUp} color="bg-green-600">
+                <PhoneSection title="Top Tracks" icon={TrendingUp} color="bg-green-600" onShowMore={() => alert("Comprehensive top tracks view coming soon!")}>
                    <div className="space-y-4">
                     {topTracks.map((track, i) => (
                       <div 
@@ -473,6 +486,10 @@ export const CatalogPage = () => {
                     title={selectedAlbum && !view.includes('detail') ? selectedAlbum.title : "Saved Albums"} 
                     icon={Disc} 
                     color="bg-purple-600"
+                    onShowMore={() => {
+                      if (selectedAlbum) setView('album-detail');
+                      else alert("Select an album to see more details.");
+                    }}
                   >
                     {albumLoading ? (
                       <div className="flex items-center justify-center py-20">
@@ -518,7 +535,7 @@ export const CatalogPage = () => {
                                <img src={album.cover_url} className="w-full h-full object-cover" alt="" />
                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Disc className="w-6 h-6 text-white" />
-                               </div>
+                                </div>
                             </div>
                             <p className="text-[10px] font-bold text-white truncate px-1">{album.title}</p>
                             <p className="text-[8px] text-gray-500 uppercase font-black truncate px-1">{album.artist_name}</p>
@@ -530,7 +547,7 @@ export const CatalogPage = () => {
                 )}
 
                 {/* Phone 4: Recent History */}
-                <PhoneSection title="Recent Activity" icon={History} color="bg-red-600">
+                <PhoneSection title="Recent Activity" icon={History} color="bg-red-600" onShowMore={() => alert("Detailed playback history coming soon!")}>
                    <div className="space-y-4">
                     {recentTracks.map((track, i) => (
                       <div 
@@ -557,7 +574,7 @@ export const CatalogPage = () => {
                 </PhoneSection>
 
                  {/* Phone 5: Collections */}
-                 <PhoneSection title="Playlists" icon={Layers} color="bg-pink-600">
+                 <PhoneSection title="Playlists" icon={Layers} color="bg-pink-600" onShowMore={() => alert("Full collections grid coming soon!")}>
                     <div className="space-y-4">
                       {playlists.map((p) => (
                         <div 
