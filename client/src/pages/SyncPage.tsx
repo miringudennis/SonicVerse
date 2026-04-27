@@ -54,6 +54,9 @@ export const SyncPage = () => {
         if (platform === 'spotify') {
             const { data } = await api.get('/spotify/auth-url');
             window.location.href = data.url;
+        } else if (platform === 'youtube') {
+            const { data } = await api.get('/youtube/auth-url');
+            window.location.href = data.url;
         } else {
             // Placeholder for other platforms
             setTimeout(() => navigate('/discover'), 1000);

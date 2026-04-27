@@ -167,6 +167,70 @@ exports.getPlaylists = async (req, res) => {
     }
 };
 
+exports.getSavedAlbums = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    const response = await axios.get('https://api.spotify.com/v1/me/albums?limit=12', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    
+    const albums = response.data.items.map(item => ({
+      id: item.album.id,
+      title: item.album.name,
+      artist_name: item.album.artists[0].name,
+      cover_url: item.album.images[0]?.url,
+      release_date: item.album.release_date,
+      total_tracks: item.album.total_tracks,
+      source: 'Spotify'
+    }));
+
+    res.json(albums);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch saved albums' });
+  }
+};
+
+exports.getAlbumTracks = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  const { albumId } = req.params;
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    const response = await axios.get(`https://api.spotify.com/v1/albums/${albumId}/tracks`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    
+    // To get the cover image, we might need to fetch the album details too, 
+    // but usually the frontend already has it. For safety, let's just return tracks.
+    // However, if we want each track to have cover_url, we need it.
+    
+    const albumResponse = await axios.get(`https://api.spotify.com/v1/albums/${albumId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const tracks = response.data.items.map(track => ({
+      id: track.id,
+      title: track.name,
+      artist_name: track.artists[0].name,
+      duration_ms: track.duration_ms,
+      cover_url: albumResponse.data.images[0]?.url,
+      isExternal: true,
+      source: 'Spotify'
+    }));
+
+    res.json({
+      album_title: albumResponse.data.name,
+      artist_name: albumResponse.data.artists[0].name,
+      cover_url: albumResponse.data.images[0]?.url,
+      tracks: tracks
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch album tracks' });
+  }
+};
+
 exports.getRecommendations = async (req, res) => {
   const accessToken = req.headers['x-spotify-token'];
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });

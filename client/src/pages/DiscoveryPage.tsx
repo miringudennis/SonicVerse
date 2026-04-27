@@ -36,29 +36,48 @@ export const DiscoveryPage = () => {
   const fetchRecommendations = async () => {
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem('spotify_token');
+    const spotifyToken = localStorage.getItem('spotify_token');
+    const youtubeToken = localStorage.getItem('youtube_token');
     
-    if (!token) {
-      setError('Spotify connection lost. Please re-sync.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await api.get('/spotify/neural-insights', {
-        headers: { 'x-spotify-token': token }
+      const requests = [];
+      if (isSpotifyLinked && spotifyToken) {
+        requests.push(api.get('/spotify/neural-insights', { headers: { 'x-spotify-token': spotifyToken } }));
+      }
+      if (isYoutubeLinked && youtubeToken) {
+        requests.push(api.get('/youtube/neural-insights', { headers: { 'x-youtube-token': youtubeToken } }));
+      }
+
+      if (requests.length === 0) {
+        setError('No platforms connected or session expired. Please re-sync.');
+        setLoading(false);
+        return;
+      }
+
+      const results = await Promise.allSettled(requests);
+      let allRecs: any[] = [];
+      
+      results.forEach((res) => {
+        if (res.status === 'fulfilled') {
+          allRecs = [...allRecs, ...res.value.data];
+        }
       });
-      setRecommendations(res.data);
+
+      if (allRecs.length === 0) {
+        throw new Error('Algorithm could not synthesize data from connected platforms.');
+      }
+
+      setRecommendations(allRecs.sort(() => Math.random() - 0.5));
       setView('results');
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
-      const details = err.response?.data?.details;
+      const details = err.response?.data?.details || err.message;
       const status = err.response?.status;
 
       if (status === 401 || status === 403) {
-        setError('Spotify session expired. Please re-sync your account.');
+        setError('Platform session expired. Please re-sync your account.');
       } else if (details) {
-        setError(`Algorithm Error (${status}): ${details}`);
+        setError(`Algorithm Error (${status || 'Local'}): ${details}`);
       } else {
         setError(`Neural algorithm failed. (Error: ${status || 'Network'})`);
       }
@@ -144,10 +163,10 @@ export const DiscoveryPage = () => {
 
             <div className="flex flex-col items-center gap-6">
                 <button 
-                    disabled={!isSpotifyLinked || loading}
+                    disabled={(!isSpotifyLinked && !isYoutubeLinked) || loading}
                     onClick={fetchRecommendations}
                     className={`group px-12 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm transition-all flex items-center gap-4 ${
-                        isSpotifyLinked 
+                        (isSpotifyLinked || isYoutubeLinked)
                         ? 'bg-white text-black hover:bg-blue-500 hover:text-white shadow-2xl shadow-blue-500/20' 
                         : 'bg-gray-900 text-gray-700 cursor-not-allowed border border-gray-800'
                     }`}
@@ -156,7 +175,7 @@ export const DiscoveryPage = () => {
                     Initialize Discovery
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                {!isSpotifyLinked && (
+                {(!isSpotifyLinked && !isYoutubeLinked) && (
                     <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">Connect at least one platform to begin</p>
                 )}
                 {error && (
@@ -170,12 +189,24 @@ export const DiscoveryPage = () => {
                                 Retry
                             </button>
                             {(error.includes('expired') || error.includes('session')) && (
-                                <button 
-                                    onClick={() => navigate('/sync/spotify')}
-                                    className="px-6 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
-                                >
-                                    Re-sync Spotify
-                                </button>
+                                <div className="flex gap-2">
+                                  {isSpotifyLinked && (
+                                    <button 
+                                        onClick={() => navigate('/sync/spotify')}
+                                        className="px-6 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
+                                    >
+                                        Re-sync Spotify
+                                    </button>
+                                  )}
+                                  {isYoutubeLinked && (
+                                    <button 
+                                        onClick={() => navigate('/sync/youtube')}
+                                        className="px-6 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-900/20"
+                                    >
+                                        Re-sync YouTube
+                                    </button>
+                                  )}
+                                </div>
                             )}
                         </div>
                     </div>

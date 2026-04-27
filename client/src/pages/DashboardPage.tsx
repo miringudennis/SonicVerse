@@ -31,6 +31,7 @@ export const DashboardPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const isSpotifyLinked = linkedAccounts.some(a => a.platform === 'spotify');
+  const isYoutubeLinked = linkedAccounts.some(a => a.platform === 'youtube');
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -38,39 +39,46 @@ export const DashboardPage = () => {
     else if (hour < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
 
-    if (isSpotifyLinked) {
+    if (isSpotifyLinked || isYoutubeLinked) {
       fetchRecommendations();
     }
-  }, [isSpotifyLinked]);
+  }, [isSpotifyLinked, isYoutubeLinked]);
 
   const fetchRecommendations = async () => {
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem('spotify_token');
     
-    if (!token) {
-      setError('Spotify token missing');
-      setLoading(false);
-      return;
-    }
-
+    const spotifyToken = localStorage.getItem('spotify_token');
+    const youtubeToken = localStorage.getItem('youtube_token');
+    
     try {
-      const res = await api.get('/spotify/neural-insights', {
-        headers: { 'x-spotify-token': token }
+      const requests = [];
+      if (isSpotifyLinked && spotifyToken) {
+        requests.push(api.get('/spotify/neural-insights', { headers: { 'x-spotify-token': spotifyToken } }));
+      }
+      if (isYoutubeLinked && youtubeToken) {
+        requests.push(api.get('/youtube/neural-insights', { headers: { 'x-youtube-token': youtubeToken } }));
+      }
+
+      if (requests.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      const results = await Promise.allSettled(requests);
+      let allRecs: any[] = [];
+      
+      results.forEach((res, i) => {
+        if (res.status === 'fulfilled') {
+          allRecs = [...allRecs, ...res.value.data];
+        }
       });
-      setRecommendations(res.data.slice(0, 4)); // Only show top 4 on dashboard
+
+      // Shuffle and take top 4
+      setRecommendations(allRecs.sort(() => Math.random() - 0.5).slice(0, 4));
     } catch (err: any) {
       console.error('Failed to fetch recommendations', err);
-      const details = err.response?.data?.details;
-      const status = err.response?.status;
-      
-      if (status === 401 || status === 403) {
-        setError('Spotify session expired. Please re-connect.');
-      } else if (details) {
-        setError(`Neural Engine (${status}): ${details}`);
-      } else {
-        setError(`Failed to load neural insights. (Error: ${status || 'Network'})`);
-      }
+      setError('Failed to load neural insights. Check your connection.');
     } finally {
       setLoading(false);
     }
@@ -166,21 +174,29 @@ export const DashboardPage = () => {
           <Link to="/discover" className="text-xs font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors">View All</Link>
         </div>
         
-        {!isSpotifyLinked ? (
+        {(!isSpotifyLinked && !isYoutubeLinked) ? (
           <div className="bg-gray-900/40 p-12 rounded-[2.5rem] border border-gray-800/50 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center mb-6 border border-green-500/20">
-              <Link2 className="w-8 h-8 text-green-500" />
+            <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
+              <Link2 className="w-8 h-8 text-blue-500" />
             </div>
-            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tighter">Spotify Not Connected</h3>
+            <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tighter">No Platforms Connected</h3>
             <p className="text-gray-500 text-sm max-w-sm mb-8 leading-relaxed">
-              Connect your Spotify account to enable our neural engine to analyze your sonic DNA and suggest new frequencies.
+              Connect your streaming accounts to enable our neural engine to analyze your sonic DNA.
             </p>
-            <Link 
-              to="/sync/spotify"
-              className="px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
-            >
-              Connect Spotify
-            </Link>
+            <div className="flex gap-4">
+              <Link 
+                to="/sync/spotify"
+                className="px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-lg shadow-green-900/20"
+              >
+                Spotify
+              </Link>
+              <Link 
+                to="/sync/youtube"
+                className="px-8 py-3 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-900/20"
+              >
+                YouTube Music
+              </Link>
+            </div>
           </div>
         ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

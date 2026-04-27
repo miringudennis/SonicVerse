@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SyncPage } from './pages/SyncPage';
 import { SpotifyCallbackPage } from './pages/SpotifyCallbackPage';
+import { YoutubeCallbackPage } from './pages/YoutubeCallbackPage';
 import { SocialFeedPage } from './pages/SocialFeedPage';
 import { CatalogPage } from './pages/CatalogPage';
 import { WelcomePage } from './pages/WelcomePage';
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="register" element={<RegisterPage />} />
         <Route path="sync/:platform" element={<SyncPage />} />
         <Route path="callback/spotify" element={<SpotifyCallbackPage />} />
+        <Route path="callback/youtube" element={<YoutubeCallbackPage />} />
 
         {/* Protected Application Routes */}
         <Route element={<ProtectedRoute />}>

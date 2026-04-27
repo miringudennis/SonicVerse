@@ -1,9 +1,20 @@
 import { useRef, useEffect } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2 } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, ChevronDown, MoreHorizontal, Share2, ListMusic } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Player = () => {
-  const { currentSong, isPlaying, togglePlay, currentTime, duration, setCurrentTime, setDuration } = usePlayerStore();
+  const { 
+    currentSong, 
+    isPlaying, 
+    togglePlay, 
+    currentTime, 
+    duration, 
+    setCurrentTime, 
+    setDuration,
+    isFullScreen,
+    setFullScreen 
+  } = usePlayerStore();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -38,58 +49,145 @@ export const Player = () => {
   if (!currentSong) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-xl border-t border-gray-800 text-white p-4 flex items-center justify-between z-[1000]">
-      <div className="flex items-center gap-4 w-1/3">
-        <img src={currentSong.cover_url} alt={currentSong.title} className="w-12 h-12 rounded-lg object-cover shadow-lg" />
-        <div className="truncate">
-          <h4 className="font-bold text-sm truncate">{currentSong.title}</h4>
-          <p className="text-gray-400 text-xs truncate">{currentSong.artist_name}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center gap-2 flex-1 max-w-xl">
-        <div className="flex items-center gap-6">
-          <SkipBack className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
-          <button 
-            onClick={togglePlay}
-            className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all active:scale-95"
+    <>
+      <AnimatePresence>
+        {isFullScreen && (
+          <motion.div 
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[2000] bg-gradient-to-b from-gray-800 to-black p-8 flex flex-col md:hidden"
           >
-            {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-1 fill-current" />}
-          </button>
-          <SkipForward className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
-        </div>
-        <div className="w-full flex items-center gap-3">
-          <span className="text-[10px] font-mono text-gray-500 w-8 text-right">
-            {Math.floor(currentTime / 60)}:{(Math.floor(currentTime % 60)).toString().padStart(2, '0')}
-          </span>
-          <input 
-            type="range" 
-            min="0" 
-            max={duration || 0} 
-            step="0.1"
-            value={currentTime} 
-            onChange={handleSeek}
-            className="flex-1 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+            <div className="flex items-center justify-between mb-8">
+              <button onClick={() => setFullScreen(false)}>
+                <ChevronDown className="w-8 h-8 text-white" />
+              </button>
+              <div className="text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Playing from</p>
+                <p className="text-xs font-bold text-white uppercase">{currentSong.source || 'SonicVerse'}</p>
+              </div>
+              <MoreHorizontal className="w-8 h-8 text-white" />
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center gap-12">
+              <motion.div 
+                layoutId="player-art"
+                className="w-full aspect-square max-w-[320px] rounded-2xl overflow-hidden shadow-2xl shadow-black/50"
+              >
+                <img src={currentSong.cover_url} className="w-full h-full object-cover" alt="" />
+              </motion.div>
+
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="truncate">
+                    <h2 className="text-2xl font-black text-white truncate italic uppercase tracking-tighter">{currentSong.title}</h2>
+                    <p className="text-lg text-gray-400 font-bold">{currentSong.artist_name}</p>
+                  </div>
+                  <button className="text-white">
+                    <div className="w-6 h-6 border-2 border-white rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                    </div>
+                  </button>
+                </div>
+
+                <div className="space-y-2 mt-8">
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max={duration || 0} 
+                    step="0.1"
+                    value={currentTime} 
+                    onChange={handleSeek}
+                    className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-white"
+                  />
+                  <div className="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    <span>{Math.floor(currentTime / 60)}:{(Math.floor(currentTime % 60)).toString().padStart(2, '0')}</span>
+                    <span>{Math.floor(duration / 60)}:{(Math.floor(duration % 60)).toString().padStart(2, '0')}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-8">
+                  <Share2 className="w-6 h-6 text-gray-400" />
+                  <div className="flex items-center gap-8">
+                    <SkipBack className="w-10 h-10 text-white fill-white" />
+                    <button 
+                      onClick={togglePlay}
+                      className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-black"
+                    >
+                      {isPlaying ? <Pause className="w-10 h-10 fill-current" /> : <Play className="w-10 h-10 ml-1 fill-current" />}
+                    </button>
+                    <SkipForward className="w-10 h-10 text-white fill-white" />
+                  </div>
+                  <ListMusic className="w-6 h-6 text-gray-400" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div 
+        onClick={() => !isFullScreen && setFullScreen(true)}
+        className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-xl border-t border-gray-800 text-white p-4 flex items-center justify-between z-[1000] cursor-pointer"
+      >
+        <div className="flex items-center gap-4 w-1/3">
+          <motion.img 
+            layoutId="player-art-mini"
+            src={currentSong.cover_url} 
+            alt={currentSong.title} 
+            className="w-12 h-12 rounded-lg object-cover shadow-lg" 
           />
-          <span className="text-[10px] font-mono text-gray-500 w-8">
-            {Math.floor(duration / 60)}:{(Math.floor(duration % 60)).toString().padStart(2, '0')}
-          </span>
+          <div className="truncate">
+            <h4 className="font-bold text-sm truncate">{currentSong.title}</h4>
+            <p className="text-gray-400 text-xs truncate">{currentSong.artist_name}</p>
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-4 w-1/3 justify-end">
-        <Volume2 className="w-5 h-5 text-gray-400" />
-        <div className="w-24 bg-gray-700 h-1 rounded-full overflow-hidden">
-            <div className="bg-white h-full w-[80%]" />
+        <div className="hidden md:flex flex-col items-center gap-2 flex-1 max-w-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-6">
+            <SkipBack className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
+            <button 
+              onClick={togglePlay}
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all active:scale-95"
+            >
+              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-1 fill-current" />}
+            </button>
+            <SkipForward className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
+          </div>
+          <div className="w-full flex items-center gap-3">
+            <span className="text-[10px] font-mono text-gray-500 w-8 text-right">
+              {Math.floor(currentTime / 60)}:{(Math.floor(currentTime % 60)).toString().padStart(2, '0')}
+            </span>
+            <input 
+              type="range" 
+              min="0" 
+              max={duration || 0} 
+              step="0.1"
+              value={currentTime} 
+              onChange={handleSeek}
+              className="flex-1 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+            />
+            <span className="text-[10px] font-mono text-gray-500 w-8">
+              {Math.floor(duration / 60)}:{(Math.floor(duration % 60)).toString().padStart(2, '0')}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <audio 
-        ref={audioRef} 
-        src={currentSong.audio_url} 
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-      />
-    </div>
+        <div className="flex items-center gap-4 w-1/3 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Volume2 className="w-5 h-5 text-gray-400" />
+          <div className="w-24 bg-gray-700 h-1 rounded-full overflow-hidden">
+              <div className="bg-white h-full w-[80%]" />
+          </div>
+        </div>
+
+        <audio 
+          ref={audioRef} 
+          src={currentSong.audio_url} 
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+        />
+      </div>
+    </>
   );
 };

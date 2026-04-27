@@ -56,7 +56,7 @@ export const WelcomePage = () => {
             to="/register" 
             className="group relative px-10 py-4 bg-white text-black rounded-full font-bold text-lg flex items-center justify-center gap-2 overflow-hidden hover:scale-105 transition-all active:scale-95 shadow-2xl shadow-white/10"
           >
-            Get Started Free
+            Enter SonicVerse
           </Link>
           <Link 
             to="/discover" 
