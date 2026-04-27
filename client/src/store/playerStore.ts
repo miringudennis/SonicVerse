@@ -6,6 +6,7 @@ interface Song {
   artist_name: string;
   audio_url: string;
   cover_url: string;
+  source?: string;
 }
 
 interface PlayerState {

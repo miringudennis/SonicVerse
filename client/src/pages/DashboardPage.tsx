@@ -68,7 +68,7 @@ export const DashboardPage = () => {
       const results = await Promise.allSettled(requests);
       let allRecs: any[] = [];
       
-      results.forEach((res, i) => {
+      results.forEach((res) => {
         if (res.status === 'fulfilled') {
           allRecs = [...allRecs, ...res.value.data];
         }
@@ -122,8 +122,8 @@ export const DashboardPage = () => {
           </p>
           
           <div className="flex flex-wrap gap-8">
-            {stats.map((stat, i) => (
-              <div key={i} className="flex items-center gap-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="flex items-center gap-3">
                 <div className={`p-2 rounded-xl bg-gray-800/50 ${stat.color}`}>
                   <stat.icon className="w-5 h-5" />
                 </div>
@@ -145,9 +145,9 @@ export const DashboardPage = () => {
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {quickActions.map((action, i) => (
+          {quickActions.map((action) => (
             <Link 
-              key={i} 
+              key={action.title} 
               to={action.link}
               className="group relative bg-gray-900/40 p-8 rounded-[2.5rem] border border-gray-800/50 backdrop-blur-xl hover:border-white/10 transition-all overflow-hidden"
             >
@@ -200,8 +200,8 @@ export const DashboardPage = () => {
           </div>
         ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-gray-900/40 p-4 rounded-3xl border border-gray-800/50 h-32 animate-pulse flex items-center justify-center">
+            {[1, 2, 3, 4].map((num) => (
+              <div key={num} className="bg-gray-900/40 p-4 rounded-3xl border border-gray-800/50 h-32 animate-pulse flex items-center justify-center">
                 <Loader2 className="w-6 h-6 text-gray-700 animate-spin" />
               </div>
             ))}
