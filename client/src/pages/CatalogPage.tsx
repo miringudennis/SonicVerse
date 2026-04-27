@@ -380,7 +380,7 @@ export const CatalogPage = () => {
                 <p className="mt-4 text-gray-500 font-bold uppercase tracking-widest text-xs">Syncing with Neural Grid...</p>
               </div>
             ) : profile && (
-              <div className="w-full overflow-x-auto flex gap-6 py-12 px-2 custom-scrollbar snap-x snap-mandatory">
+              <div className="w-screen relative left-1/2 -ml-[50vw] overflow-x-auto flex gap-6 py-12 px-12 custom-scrollbar snap-x snap-mandatory">
                 {/* Phone 1: Top Artists */}
                 <PhoneSection title="Top Artists" icon={Users} color="bg-blue-600">
                   <div className="space-y-4">
