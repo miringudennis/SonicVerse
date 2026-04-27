@@ -40,7 +40,10 @@ exports.getTopArtists = async (req, res) => {
 exports.getNeuralInsights = async (req, res) => {
   const recommendations = [
     { id: 'ytr1', title: 'After Hours', artist_name: 'The Weeknd', cover_url: 'https://i.ytimg.com/vi/fHI8X4OXluQ/maxresdefault.jpg', source: 'YouTube Music' },
-    { id: 'ytr2', title: 'Highest in the Room', artist_name: 'Travis Scott', cover_url: 'https://i.ytimg.com/vi/tfSS1e3kYeo/maxresdefault.jpg', source: 'YouTube Music' }
+    { id: 'ytr2', title: 'Highest in the Room', artist_name: 'Travis Scott', cover_url: 'https://i.ytimg.com/vi/tfSS1e3kYeo/maxresdefault.jpg', source: 'YouTube Music' },
+    { id: 'ytr3', title: 'Blinding Lights', artist_name: 'The Weeknd', cover_url: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/maxresdefault.jpg', source: 'YouTube Music' },
+    { id: 'ytr4', title: 'Circles', artist_name: 'Post Malone', cover_url: 'https://i.ytimg.com/vi/wXhTHyIgQ_U/maxresdefault.jpg', source: 'YouTube Music' },
+    { id: 'ytr5', title: 'Starboy', artist_name: 'The Weeknd', cover_url: 'https://i.ytimg.com/vi/34Na4j8AVgA/maxresdefault.jpg', source: 'YouTube Music' }
   ];
   res.json(recommendations);
 };

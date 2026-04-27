@@ -92,3 +92,31 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.updateProfile = async (req, res) => {
+  const { username, display_name, bio, avatar_url, location } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const result = await db.query(
+      `UPDATE profiles 
+       SET username = COALESCE($1, username),
+           display_name = COALESCE($2, display_name),
+           bio = COALESCE($3, bio),
+           avatar_url = COALESCE($4, avatar_url),
+           location = COALESCE($5, location)
+       WHERE user_id = $6
+       RETURNING *`,
+      [username, display_name, bio, avatar_url, location, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.json({ success: true, profile: result.rows[0] });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ message: err.message });
+  }
+};

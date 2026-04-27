@@ -86,6 +86,42 @@ exports.getArtistsWithLocation = async (req, res) => {
   }
 };
 
+exports.getNeuralInsights = async (req, res) => {
+  try {
+    const { genres } = req.query;
+    let query = `
+      SELECT s.*, p.username as artist_name 
+      FROM songs s 
+      JOIN artists a ON s.artist_id = a.id 
+      JOIN profiles p ON a.profile_id = p.id
+    `;
+    const params = [];
+
+    if (genres) {
+      const genreList = genres.split(',');
+      query += ` WHERE EXISTS (
+        SELECT 1 FROM unnest(a.genre_tags) g 
+        WHERE g = ANY($1::text[])
+      )`;
+      params.push(genreList);
+    }
+
+    query += ` ORDER BY RANDOM() LIMIT 10`;
+
+    const result = await db.query(query, params);
+    
+    const recommendations = result.rows.map(row => ({
+      ...row,
+      source: 'SonicVerse',
+      isExternal: false
+    }));
+
+    res.json(recommendations);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.getSongById = async (req, res) => {
   try {
     const result = await db.query(

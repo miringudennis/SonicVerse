@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.get('/', songController.getSongs);
 router.get('/discovery/graph', songController.getDiscoveryGraph);
+router.get('/neural-insights', authMiddleware, songController.getNeuralInsights);
 router.get('/artists/locations', songController.getArtistsWithLocation);
 router.get('/:id', songController.getSongById);
 router.post('/', authMiddleware, songController.createSong);

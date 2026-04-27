@@ -279,9 +279,19 @@ exports.getRecommendations = async (req, res) => {
   if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
 
   try {
-    // 1. Force a simple request first to see if it works
-    const testUrl = 'https://api.spotify.com/v1/recommendations?limit=10&seed_genres=pop';
-    const response = await axios.get(testUrl, {
+    // 1. Fetch top tracks to use as seeds
+    const topTracksRes = await axios.get('https://api.spotify.com/v1/me/top/tracks?limit=5', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    let seeds = '';
+    if (topTracksRes.data.items && topTracksRes.data.items.length > 0) {
+      seeds = `seed_tracks=${topTracksRes.data.items.map(t => t.id).join(',')}`;
+    } else {
+      seeds = 'seed_genres=pop,electronic'; // Fallback
+    }
+
+    const response = await axios.get(`https://api.spotify.com/v1/recommendations?limit=10&${seeds}`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
@@ -304,7 +314,7 @@ exports.getRecommendations = async (req, res) => {
     res.status(status).json({ 
       message: 'Neural Engine Fault',
       details: data?.error?.message || error.message,
-      code: 'SPOTIFY_RECS_404_DEBUG'
+      code: 'SPOTIFY_RECS_FAILURE'
     });
   }
 };
