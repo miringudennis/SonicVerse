@@ -156,7 +156,7 @@ exports.getPlaylists = async (req, res) => {
         id: p.id,
         name: p.name,
         description: p.description,
-        cover_url: p.images[0]?.url,
+        cover_url: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
         track_count: p.tracks.total,
         owner: p.owner.display_name
       }));

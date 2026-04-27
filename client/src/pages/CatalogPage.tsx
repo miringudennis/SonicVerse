@@ -225,7 +225,7 @@ export const CatalogPage = () => {
   const topGenres = profile ? (topArtists?.[0]?.genres?.slice(0, 5) || []) : [];
 
   return (
-    <div className="py-8 space-y-12 pb-32">
+    <div className="py-8 space-y-12 pb-12">
       <AnimatePresence mode="wait">
         {view === 'welcome' ? (
           <motion.div 
@@ -356,7 +356,7 @@ export const CatalogPage = () => {
                           {[
                             { id: 'short_term', label: '4 Weeks' },
                             { id: 'medium_term', label: '6 Months' },
-                            { id: 'long_term', label: 'Infinity' }
+                            { id: 'long_term', label: 'All Time' }
                           ].map((range) => (
                             <button 
                               key={range.id}
@@ -579,7 +579,7 @@ export const CatalogPage = () => {
                           className="flex items-center gap-4 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                         >
                           <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
-                             <img src={p.cover_url} className="w-full h-full object-cover" alt="" />
+                             <img src={p.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-full h-full object-cover" alt="" />
                           </div>
                           <div className="flex-1 overflow-hidden">
                             <p className="text-xs font-bold text-white truncate">{p.name}</p>
@@ -773,7 +773,7 @@ export const CatalogPage = () => {
         )}
       </AnimatePresence>
 
-      <div className="pt-20 border-t border-white/5 flex flex-col items-center gap-4 opacity-30">
+      <div className="pt-8 border-t border-white/5 flex flex-col items-center gap-4 opacity-30">
         <div className="flex items-center gap-3">
            <div className={`w-1.5 h-1.5 rounded-full ${activePlatform === 'spotify' ? 'bg-blue-500' : 'bg-red-500'}`}></div>
            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500">Archive Link Active</span>
