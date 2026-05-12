@@ -1,6 +1,7 @@
 import { Component, type ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react';
+import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown, Menu, X, Bell } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { Player } from './Player';
 
@@ -43,7 +44,7 @@ const UserDropdown = () => {
   }, []);
 
   if (!user) return (
-    <Link to="/login" className="flex items-center gap-2 bg-blue-600 px-5 py-2 rounded-full font-bold text-sm hover:bg-blue-700 transition-all active:scale-95">
+    <Link to="/login" className="flex items-center gap-2 bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-all active:scale-95 shadow-lg shadow-white/5">
       <LogIn className="w-4 h-4" /> Login
     </Link>
   );
@@ -52,44 +53,51 @@ const UserDropdown = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-900 transition-colors group"
+        className="flex items-center gap-3 p-1 pr-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all group backdrop-blur-md"
       >
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white uppercase shadow-lg shadow-blue-500/20">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-black text-white uppercase shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
           {user.username?.[0] || user.email?.[0] || 'U'}
         </div>
         <div className="hidden sm:block text-left">
-          <p className="text-sm font-bold text-white leading-tight">{user.username || (user.email ? user.email.split('@')[0] : 'User')}</p>
+          <p className="text-xs font-black text-white uppercase tracking-tighter">{user.username || 'Explorer'}</p>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl z-[60] overflow-hidden py-1">
-          <div className="px-4 py-3 border-b border-gray-800 bg-gray-900/50">
-             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Signed in as</p>
-             <p className="text-sm font-bold truncate text-white">{user.username || user.email}</p>
-          </div>
-          
-          <Link 
-            to="/settings" 
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="absolute right-0 mt-4 w-64 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl z-[60] overflow-hidden py-2"
           >
-            <Settings className="w-4 h-4" /> Account Settings
-          </Link>
-          
-          <button 
-            onClick={() => {
-              setIsOpen(false);
-              logout();
-              navigate('/');
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors border-t border-gray-800"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
-        </div>
-      )}
+            <div className="px-5 py-4 border-b border-white/5 bg-white/5">
+               <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Authenticated as</p>
+               <p className="text-sm font-black truncate text-white uppercase tracking-tighter">{user.username || user.email}</p>
+            </div>
+            
+            <Link 
+              to="/settings" 
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-5 py-4 text-xs font-black text-gray-400 hover:text-white hover:bg-white/5 transition-all uppercase tracking-widest"
+            >
+              <Settings className="w-4 h-4 text-blue-500" /> Account Settings
+            </Link>
+            
+            <button 
+              onClick={() => {
+                setIsOpen(false);
+                logout();
+                navigate('/');
+              }}
+              className="w-full flex items-center gap-3 px-5 py-4 text-xs font-black text-red-500 hover:bg-red-500/10 transition-all border-t border-white/5 uppercase tracking-widest"
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -98,17 +106,25 @@ export const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
+    { to: '/dashboard', icon: LayoutGrid, label: 'Dash' },
     { to: '/discover', icon: Compass, label: 'Discover' },
-    { to: '/catalog', icon: LayoutGrid, label: 'Catalog' },
+    { to: '/catalog', icon: Music, label: 'Catalog' },
     { to: '/feed', icon: ShoppingCart, label: 'Feed' },
-    { to: '/story/demo', icon: Music, label: 'Stories' },
     { to: '/map', icon: MapIcon, label: 'Map' },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-md border-b border-gray-800 z-[1000] flex items-center justify-between px-6">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30 font-sans">
+      {/* Background Ambience */}
+      <ShaderBackground />
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
+      </div>
+
+      <nav className="fixed top-0 left-0 right-0 h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5 z-[1000] flex items-center justify-between px-8">
+        <div className="flex items-center gap-6">
           {/* Mobile Menu Button */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -117,78 +133,88 @@ export const Layout = () => {
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl text-blue-500">
-            <Music className="w-8 h-8" />
-            <span className="hidden xs:block">SonicVerse</span>
+          <Link to="/dashboard" className="flex items-center gap-2 font-black text-2xl tracking-tighter group">
+             <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-12 transition-transform">
+               <Music className="w-6 h-6 text-white" />
+             </div>
+             <span className="hidden xs:block bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">SonicVerse</span>
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8 text-gray-400 font-medium text-sm">
+        <div className="hidden md:flex items-center gap-1 bg-white/5 p-1.5 rounded-2xl border border-white/5">
           {navLinks.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) => 
-                `relative flex items-center gap-2 transition-all duration-300 hover:text-white ${
-                  isActive ? 'text-white font-bold' : 'text-gray-400'
+                `flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
+                  isActive ? 'bg-white text-black shadow-xl shadow-white/5' : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`
               }
             >
-              {({ isActive }) => (
-                <>
-                  <item.icon className={`w-4 h-4 ${isActive ? 'text-blue-500' : ''}`} />
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute -bottom-[22px] left-0 right-0 h-[2px] bg-blue-500 rounded-full shadow-[0_0_8px_#3b82f6]" />
-                  )}
-                </>
-              )}
+              <item.icon className="w-4 h-4" />
+              {item.label}
             </NavLink>
           ))}
         </div>
 
         <div className="flex items-center gap-4">
+          <button className="p-3 rounded-full bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all relative">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full border border-black" />
+          </button>
           <UserDropdown />
         </div>
       </nav>
 
       {/* Mobile Navigation Dropdown */}
-      {isMobileMenuOpen && (
-        <div className="fixed top-20 left-6 w-64 bg-gray-900 border border-gray-800 rounded-[2rem] shadow-2xl shadow-blue-500/10 z-[999] md:hidden animate-in fade-in slide-in-from-top-4 duration-300 overflow-hidden">
-          <div className="flex flex-col p-3 gap-1">
-            {navLinks.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={({ isActive }) => 
-                  `flex items-center gap-3 p-3.5 rounded-2xl text-sm font-bold transition-all ${
-                    isActive ? 'bg-blue-600/10 text-white' : 'text-gray-400 hover:bg-gray-800'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : ''}`} />
-                    {item.label}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-6 right-6 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl z-[999] md:hidden overflow-hidden"
+          >
+            <div className="flex flex-col p-4 gap-2">
+              {navLinks.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) => 
+                    `flex items-center gap-4 p-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                      isActive ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/5'
+                    }`
+                  }
+                >
+                  <item.icon className="w-5 h-5" />
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <main className="pt-24 pb-32 px-6 max-w-7xl mx-auto">
-        <ErrorBoundary fallback={<div className="p-10 border border-red-500 rounded bg-red-900/10 text-red-500">Route Component Crashed</div>}>
+      <main className="relative z-10 pt-28 pb-32 px-6 max-w-7xl mx-auto">
+        <ErrorBoundary fallback={<div className="p-10 border border-red-500/20 rounded-[2rem] bg-red-900/5 text-red-500 font-black uppercase tracking-widest text-center text-xs">Sonic Driver Conflict: Component Failed</div>}>
           <Outlet />
         </ErrorBoundary>
       </main>
 
       <ErrorBoundary fallback={null}>
-         <Player />
+         <div className="fixed bottom-0 left-0 right-0 z-[1001] px-6 pb-6 pointer-events-none">
+           <div className="max-w-7xl mx-auto pointer-events-auto">
+             <Player />
+           </div>
+         </div>
       </ErrorBoundary>
+    </div>
+  );
+};
+oundary>
     </div>
   );
 };

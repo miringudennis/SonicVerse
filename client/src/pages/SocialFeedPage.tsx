@@ -1,19 +1,24 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Heart, Share2, Music } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Music, Send, Zap, Sparkles, TrendingUp, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
 export const SocialFeedPage = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
   const { user } = useAuthStore();
 
   const fetchPosts = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/posts');
       setPosts(res.data);
     } catch (err) {
       console.error('Failed to fetch posts', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,62 +39,193 @@ export const SocialFeedPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-4xl font-black mb-8">Activity Feed</h1>
+    <div className="max-w-4xl mx-auto space-y-12 pb-20">
+      {/* Feed Header */}
+      <section className="relative overflow-hidden rounded-[3.5rem] bg-[#0a0a0a] border border-white/5 p-12 md:p-16 shadow-2xl">
+        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+          <MessageSquare className="w-80 h-80 text-blue-500 -rotate-12" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+           <div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+                <Sparkles className="w-3 h-3" />
+                <span>Global Activity Stream</span>
+              </div>
+              <h1 className="text-5xl md:text-[5rem] font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+                Social <br /> Verse.
+              </h1>
+              <p className="text-gray-400 text-lg max-w-xl font-medium leading-relaxed">
+                Connect with the collective. Share your neural discoveries and sonic experiences with the world.
+              </p>
+           </div>
+           <div className="flex flex-col gap-4">
+              <div className="flex flex-col">
+                 <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-1 text-center md:text-right">Global Nodes</span>
+                 <span className="text-2xl font-black text-white uppercase italic tracking-tighter text-center md:text-right">4.2k Online</span>
+              </div>
+              <div className="h-px w-full bg-white/10" />
+              <div className="flex flex-col">
+                 <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-1 text-center md:text-right">Active Jams</span>
+                 <span className="text-2xl font-black text-white uppercase italic tracking-tighter text-center md:text-right">12 Nodes</span>
+              </div>
+           </div>
+        </div>
+      </section>
 
+      {/* Post Creation Console */}
       {user && (
-        <form onSubmit={handleSubmit} className="mb-10 bg-gray-900 p-6 rounded-2xl border border-gray-800">
-          <textarea
-            className="w-full bg-black border border-gray-700 p-4 rounded-xl focus:outline-none focus:border-blue-500 transition mb-4 resize-none"
-            placeholder="Share your musical journey..."
-            rows={3}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-          <div className="flex justify-between items-center">
-            <button type="button" className="text-gray-400 hover:text-white flex items-center gap-2">
-                <Music className="w-5 h-5" /> Attach Song
-            </button>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-full font-bold transition">
-              Post
-            </button>
-          </div>
-        </form>
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-[3rem] bg-[#0a0a0a] border border-white/5 p-8 shadow-2xl"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-30" />
+          <form onSubmit={handleSubmit}>
+            <div className="flex items-start gap-6 mb-8">
+               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-black text-white text-xl uppercase shadow-lg shadow-blue-500/20 shrink-0">
+                 {user.username?.[0] || 'U'}
+               </div>
+               <textarea
+                className="flex-1 bg-transparent border-none p-0 text-xl font-medium text-white placeholder:text-gray-700 focus:outline-none focus:ring-0 resize-none pt-2"
+                placeholder="Synchronize a message to the Verse..."
+                rows={3}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+              <div className="flex gap-4">
+                <button type="button" className="p-3 rounded-xl bg-white/5 border border-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group">
+                    <Music className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
+                    <span className="hidden sm:inline">Attach Signal</span>
+                </button>
+                <button type="button" className="p-3 rounded-xl bg-white/5 border border-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group">
+                    <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span className="hidden sm:inline">Boost</span>
+                </button>
+              </div>
+              <button 
+                type="submit" 
+                disabled={!content.trim()}
+                className="px-10 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl shadow-white/5 disabled:opacity-20 flex items-center gap-3 group"
+              >
+                Broadcast 
+                <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </button>
+            </div>
+          </form>
+        </motion.section>
       )}
 
-      <div className="space-y-6">
-        {posts.map((post) => (
-          <div key={post.id} className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold">
-                {post.username[0].toUpperCase()}
-              </div>
-              <div>
-                <h4 className="font-bold">{post.username}</h4>
-                <p className="text-gray-500 text-xs">{new Date(post.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
+      {/* Feed List */}
+      <div className="space-y-10">
+        <div className="flex items-center justify-between px-6">
+           <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+             <TrendingUp className="w-6 h-6 text-blue-500" /> Live Feed
+           </h2>
+           <div className="flex gap-6">
+              <button className="text-[10px] font-black text-white border-b-2 border-blue-500 pb-1 uppercase tracking-widest">Global</button>
+              <button className="text-[10px] font-black text-gray-600 hover:text-white pb-1 uppercase tracking-widest transition-colors">Following</button>
+              <button className="text-[10px] font-black text-gray-600 hover:text-white pb-1 uppercase tracking-widest transition-colors">Local</button>
+           </div>
+        </div>
 
-            <p className="text-gray-200 mb-6 leading-relaxed">{post.content}</p>
+        <AnimatePresence mode="popLayout">
+          {posts.map((post, idx) => (
+            <motion.div 
+              key={post.id} 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="bg-[#0a0a0a] p-10 rounded-[3.5rem] border border-white/5 hover:border-white/10 transition-all shadow-xl group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-10 opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none">
+                 <Sparkles className="w-24 h-24 text-blue-500" />
+              </div>
 
-            {post.song_title && (
-                <div className="bg-black/50 p-4 rounded-xl border border-gray-800 mb-6 flex items-center gap-4">
-                    <img src={post.song_cover} alt={post.song_title} className="w-12 h-12 rounded object-cover" />
-                    <div>
-                        <h5 className="font-bold text-sm">{post.song_title}</h5>
-                        <p className="text-gray-500 text-xs">Shared via SonicVerse</p>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-blue-400 text-xl uppercase group-hover:scale-110 transition-transform">
+                    {post.username?.[0] || 'U'}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-white text-xl uppercase italic tracking-tighter leading-none mb-1 group-hover:text-blue-400 transition-colors">{post.username}</h4>
+                    <div className="flex items-center gap-2 opacity-50">
+                       <Clock className="w-3 h-3 text-gray-500" />
+                       <p className="text-gray-500 text-[9px] font-black uppercase tracking-[0.2em]">{new Date(post.created_at).toLocaleDateString()} // {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
+                  </div>
                 </div>
-            )}
+                <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                   <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Node Verified</span>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-8 text-gray-400 border-t border-gray-800 pt-4">
-              <button className="flex items-center gap-2 hover:text-red-500 transition"><Heart className="w-5 h-5" /> 0</button>
-              <button className="flex items-center gap-2 hover:text-blue-500 transition"><MessageSquare className="w-5 h-5" /> 0</button>
-              <button className="flex items-center gap-2 hover:text-green-500 transition"><Share2 className="w-5 h-5" /> Share</button>
-            </div>
+              <p className="text-gray-300 text-lg mb-10 leading-relaxed font-medium px-2">{post.content}</p>
+
+              {post.song_title && (
+                  <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 mb-10 flex items-center justify-between group/song hover:bg-white/10 transition-all cursor-pointer">
+                      <div className="flex items-center gap-6">
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-2xl">
+                           <img src={post.song_cover || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop'} alt={post.song_title} className="w-full h-full object-cover group-hover/song:scale-110 transition-transform duration-700" />
+                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/song:opacity-100 transition-opacity">
+                              <Music className="w-6 h-6 text-white" />
+                           </div>
+                        </div>
+                        <div>
+                            <h5 className="font-black text-white text-lg uppercase italic tracking-tighter leading-none mb-1">{post.song_title}</h5>
+                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Signal Synchronized via SonicVerse</p>
+                        </div>
+                      </div>
+                      <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-gray-500 group-hover/song:text-white group-hover/song:border-white/30 transition-all">
+                         <Play className="w-5 h-5 fill-current ml-1" />
+                      </div>
+                  </div>
+              )}
+
+              <div className="flex items-center gap-10 text-gray-600 border-t border-white/5 pt-8 px-2">
+                <button className="flex items-center gap-2.5 hover:text-pink-500 transition-all text-[10px] font-black uppercase tracking-widest group/btn">
+                  <Heart className="w-5 h-5 group-hover/btn:fill-current group-hover/btn:scale-110 transition-transform" /> 
+                  <span>842</span>
+                </button>
+                <button className="flex items-center gap-2.5 hover:text-blue-500 transition-all text-[10px] font-black uppercase tracking-widest group/btn">
+                  <MessageSquare className="w-5 h-5 group-hover/btn:scale-110 transition-transform" /> 
+                  <span>12</span>
+                </button>
+                <div className="flex-1" />
+                <button className="flex items-center gap-2.5 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest group/btn">
+                  <Share2 className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" /> 
+                  <span className="hidden sm:inline">Propagate</span>
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {loading && (
+           <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-12 h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
+              <p className="mt-8 text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Retrieving Verse Activity...</p>
+           </div>
+        )}
+
+        {!loading && posts.length === 0 && (
+          <div className="py-32 flex flex-col items-center text-center bg-[#0a0a0a] rounded-[3.5rem] border border-white/5 p-12">
+             <div className="w-20 h-20 rounded-3xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mb-8">
+                <Zap className="w-10 h-10 text-blue-500" />
+             </div>
+             <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Feed Offline</h3>
+             <p className="text-gray-500 text-lg font-medium leading-relaxed">No signals detected in this sector of the Verse. Be the first to broadcast.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
 };
+
+const Play = ({ className }: { className?: string }) => (
+  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 3L19 12L5 21V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
