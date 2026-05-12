@@ -84,6 +84,7 @@ exports.getTopTracks = async (req, res) => {
       title: track.name,
       artist_name: track.artists[0].name,
       cover_url: track.album.images[0]?.url,
+      audio_url: track.preview_url, // Map preview_url to audio_url
       duration_ms: track.duration_ms,
       isExternal: true,
       source: 'Spotify'
@@ -133,6 +134,7 @@ exports.getRecentlyPlayed = async (req, res) => {
         title: item.track.name,
         artist_name: item.track.artists[0].name,
         cover_url: item.track.album.images[0]?.url,
+        audio_url: item.track.preview_url,
         played_at: item.played_at,
         source: 'Spotify'
       }));
@@ -194,6 +196,7 @@ exports.getPlaylistTracks = async (req, res) => {
         artist_name: track.artists[0].name,
         duration_ms: track.duration_ms,
         cover_url: track.album?.images[0]?.url || playlistResponse.data.images?.[0]?.url,
+        audio_url: track.preview_url,
         isExternal: true,
         source: 'Spotify'
       };
@@ -301,6 +304,7 @@ exports.getRecommendations = async (req, res) => {
       artist_name: track.artists[0].name,
       artist_id: track.artists[0].id,
       cover_url: track.album.images[0]?.url,
+      audio_url: track.preview_url,
       preview_url: track.preview_url,
       external_url: track.external_urls.spotify,
       source: 'Spotify'
@@ -354,6 +358,7 @@ exports.getArtistDiscography = async (req, res) => {
         title: track.name,
         duration_ms: track.duration_ms,
         cover_url: track.album.images[0]?.url,
+        audio_url: track.preview_url,
         artist_name: track.artists[0].name,
         source: 'Spotify',
         play_count: Math.floor(Math.random() * 1500 + 200)
