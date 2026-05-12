@@ -51,6 +51,147 @@ exports.callback = async (req, res) => {
   }
 };
 
+exports.getProfile = async (req, res) => {
+  const accessToken = req.headers['x-youtube-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No YouTube token provided' });
+
+  try {
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const oauth2 = google.oauth2({ version: 'v2', auth });
+    const userInfo = await oauth2.userinfo.get();
+
+    // To get more YouTube specific info like subscriber count, we'd need channel info
+    const youtube = google.youtube({ version: 'v3', auth });
+    const channelRes = await youtube.channels.list({
+      part: 'snippet,statistics',
+      mine: true
+    });
+
+    const channel = channelRes.data.items?.[0];
+
+    res.json({
+      username: userInfo.data.name,
+      display_name: userInfo.data.name,
+      avatar_url: userInfo.data.picture,
+      images: [{ url: userInfo.data.picture }],
+      country: channel?.snippet?.country || 'Unknown',
+      followers: { total: channel?.statistics?.subscriberCount || 0 }
+    });
+  } catch (error) {
+    console.error('YouTube Profile Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch YouTube profile' });
+  }
+};
+
+exports.getRecentlyPlayed = async (req, res) => {
+  const accessToken = req.headers['x-youtube-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No YouTube token provided' });
+
+  try {
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const youtube = google.youtube({ version: 'v3', auth });
+
+    // YouTube doesn't have a direct "recently played" for API (it's private)
+    // We can fetch user's recent uploads or activities if public, but for music,
+    // "liked" videos is usually the best proxy for music users.
+    // However, if we want "recently played", we might need to use the activities list
+    const response = await youtube.activities.list({
+      part: 'snippet,contentDetails',
+      mine: true,
+      maxResults: 10
+    });
+
+    const tracks = response.data.items
+      .filter(item => item.snippet.type === 'upload' || item.snippet.type === 'playlistItem')
+      .map(item => ({
+        id: item.contentDetails.upload?.videoId || item.id,
+        title: item.snippet.title,
+        artist_name: item.snippet.channelTitle,
+        cover_url: item.snippet.thumbnails.high?.url,
+        played_at: item.snippet.publishedAt,
+        source: 'YouTube Music'
+      }));
+
+    res.json(tracks);
+  } catch (error) {
+    console.error('YouTube Recent Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch recently played' });
+  }
+};
+
+exports.getPlaylists = async (req, res) => {
+  const accessToken = req.headers['x-youtube-token'];
+  if (!accessToken) return res.status(401).json({ message: 'No YouTube token provided' });
+
+  try {
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const youtube = google.youtube({ version: 'v3', auth });
+
+    const response = await youtube.playlists.list({
+      part: 'snippet,contentDetails',
+      mine: true,
+      maxResults: 20
+    });
+
+    const playlists = response.data.items.map(p => ({
+      id: p.id,
+      name: p.snippet.title,
+      description: p.snippet.description || 'YouTube Music Collection',
+      cover_url: p.snippet.thumbnails.high?.url || p.snippet.thumbnails.default?.url,
+      track_count: p.contentDetails.itemCount,
+      owner: p.snippet.channelTitle
+    }));
+
+    res.json(playlists);
+  } catch (error) {
+    console.error('YouTube Playlists Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch YouTube playlists' });
+  }
+};
+
+exports.getPlaylistTracks = async (req, res) => {
+  const accessToken = req.headers['x-youtube-token'];
+  const { playlistId } = req.params;
+  if (!accessToken) return res.status(401).json({ message: 'No YouTube token provided' });
+
+  try {
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const youtube = google.youtube({ version: 'v3', auth });
+
+    const [playlistRes, itemsRes] = await Promise.all([
+      youtube.playlists.list({ part: 'snippet', id: playlistId }),
+      youtube.playlistItems.list({
+        part: 'snippet,contentDetails',
+        playlistId: playlistId,
+        maxResults: 50
+      })
+    ]);
+
+    const tracks = itemsRes.data.items.map(item => ({
+      id: item.contentDetails.videoId,
+      videoId: item.contentDetails.videoId,
+      title: item.snippet.title,
+      artist_name: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle,
+      cover_url: item.snippet.thumbnails.high?.url,
+      source: 'YouTube Music',
+      isExternal: true
+    }));
+
+    res.json({
+      playlist_name: playlistRes.data.items[0]?.snippet.title,
+      cover_url: playlistRes.data.items[0]?.snippet.thumbnails.high?.url,
+      tracks: tracks
+    });
+  } catch (error) {
+    console.error('YouTube Playlist Tracks Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch playlist tracks' });
+  }
+};
+
 exports.getTopTracks = async (req, res) => {
   const accessToken = req.headers['x-youtube-token'];
   if (!accessToken) return res.status(401).json({ message: 'No YouTube token provided' });
