@@ -234,7 +234,7 @@ export const DashboardPage = () => {
                 <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-2xl">
                   <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   <button 
-                    onClick={() => setSong(track)}
+                    onClick={() => setSong(track, recommendations)}
                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <div className="w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white">

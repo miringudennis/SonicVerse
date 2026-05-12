@@ -194,8 +194,8 @@ export const CatalogPage = () => {
     }
   };
 
-  const playSong = (track: any) => {
-    setSong(track);
+  const playSong = (track: any, list: any[]) => {
+    setSong(track, list);
     setFullScreen(true);
   };
 
@@ -442,7 +442,7 @@ export const CatalogPage = () => {
                         {discography.top_tracks?.slice(0, 5).map((track: any, i: number) => (
                           <div 
                             key={track.id} 
-                            onClick={() => playSong(track)}
+                            onClick={() => playSong(track, discography.top_tracks)}
                             className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                           >
                             <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
@@ -481,7 +481,7 @@ export const CatalogPage = () => {
                     {topTracks.map((track, i) => (
                       <div 
                         key={track.id} 
-                        onClick={() => playSong(track)}
+                        onClick={() => playSong(track, topTracks)}
                         className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                       >
                         <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
@@ -533,7 +533,7 @@ export const CatalogPage = () => {
                           {albumTracks.tracks?.map((track: any, i: number) => (
                             <div 
                               key={track.id} 
-                              onClick={() => playSong(track)}
+                              onClick={() => playSong(track, albumTracks.tracks)}
                               className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                             >
                               <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
@@ -575,7 +575,7 @@ export const CatalogPage = () => {
                     {recentTracks.map((track, i) => (
                       <div 
                         key={`${track.id}-${i}`} 
-                        onClick={() => playSong(track)}
+                        onClick={() => playSong(track, recentTracks)}
                         className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                       >
                         <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0">
@@ -628,7 +628,7 @@ export const CatalogPage = () => {
                           {playlistTracks.tracks?.map((track: any, i: number) => (
                             <div 
                               key={track.id} 
-                              onClick={() => playSong(track)}
+                              onClick={() => playSong(track, playlistTracks.tracks)}
                               className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group"
                             >
                               <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}</span>
@@ -713,7 +713,7 @@ export const CatalogPage = () => {
                     {discography.top_tracks?.map((track: any, i: number) => (
                       <div 
                         key={track.id} 
-                        onClick={() => playSong(track)}
+                        onClick={() => playSong(track, discography.top_tracks)}
                         className="flex items-center gap-4 p-4 bg-gray-900/40 rounded-[2rem] border border-gray-800/50 hover:bg-gray-800 transition-all cursor-pointer group"
                       >
                         <span className="text-xs font-black text-gray-700 w-4">{i + 1}</span>
@@ -828,7 +828,7 @@ export const CatalogPage = () => {
                       {albumTracks?.tracks?.map((track: any, i: number) => (
                         <div 
                           key={track.id} 
-                          onClick={() => playSong(track)}
+                          onClick={() => playSong(track, albumTracks.tracks)}
                           className="px-8 py-5 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group"
                         >
                            <div className="flex items-center gap-6">

@@ -94,7 +94,7 @@ export const DiscoveryPage = () => {
                 <div className="relative aspect-square rounded-2xl overflow-hidden mb-4 shadow-lg border border-white/5">
                   <img src={item.cover_url} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" alt={item.title} />
                   <button 
-                    onClick={() => setSong(item)}
+                    onClick={() => setSong(item, data)}
                     className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]"
                   >
                     <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
