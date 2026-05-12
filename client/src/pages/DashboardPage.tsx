@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Compass, 
-  LayoutGrid, 
-  Map as MapIcon, 
   Music, 
   Sparkles, 
   Zap, 
   ArrowRight, 
   Play, 
-  Clock, 
-  MessageSquare,
-  Loader2,
   AlertCircle,
   Link2,
   TrendingUp,
@@ -19,9 +13,11 @@ import {
   Shield,
   Radio,
   Share2,
-  Lock
+  Lock,
+  LayoutGrid,
+  Map as MapIcon
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { usePlayerStore } from '../store/playerStore';
 import api from '../services/api';

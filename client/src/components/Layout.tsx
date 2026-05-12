@@ -4,6 +4,7 @@ import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settin
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { Player } from './Player';
+import { ShaderBackground } from './ShaderBackground';
 
 interface Props {
   children: ReactNode;
@@ -115,7 +116,6 @@ export const Layout = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30 font-sans">
-      {/* Background Ambience */}
       <ShaderBackground />
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full" />
@@ -125,7 +125,6 @@ export const Layout = () => {
 
       <nav className="fixed top-0 left-0 right-0 h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5 z-[1000] flex items-center justify-between px-8">
         <div className="flex items-center gap-6">
-          {/* Mobile Menu Button */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
@@ -141,7 +140,6 @@ export const Layout = () => {
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1 bg-white/5 p-1.5 rounded-2xl border border-white/5">
           {navLinks.map((item) => (
             <NavLink
@@ -168,7 +166,6 @@ export const Layout = () => {
         </div>
       </nav>
 
-      {/* Mobile Navigation Dropdown */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div 
@@ -211,10 +208,6 @@ export const Layout = () => {
            </div>
          </div>
       </ErrorBoundary>
-    </div>
-  );
-};
-oundary>
     </div>
   );
 };

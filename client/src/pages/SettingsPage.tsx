@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { useAuthStore } from '../store/authStore';
-import { User, Shield, Save, Loader2, LogOut, X, Camera, Bell, Eye, EyeOff, Trash2, Settings, Zap, Key } from 'lucide-react';
+import { useAuthStore, type LinkedAccount } from '../store/authStore';
+import { User, Shield, Save, Loader2, LogOut, X, Camera, Bell, Eye, EyeOff, Trash2, Settings, Zap, Key, Music, Video, Play as AppleMusicIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import api from '../services/api';
@@ -8,11 +8,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const SettingsPage = () => {
   const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const linkedAccounts = useAuthStore((state) => state.linkedAccounts) as LinkedAccount[];
+  const { unlinkAccount, logout } = useAuthStore();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'prefs'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'accounts' | 'prefs'>('profile');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -27,6 +28,15 @@ export const SettingsPage = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  const handleUnlink = (platform: string) => {
+    if (window.confirm(`Are you sure you want to unlink your ${platform} account? This will remove all synchronized data.`)) {
+      unlinkAccount(platform);
+      localStorage.removeItem(`${platform}_token`);
+      setSuccess(`${platform.charAt(0).toUpperCase() + platform.slice(1)} account unlinked.`);
+      setTimeout(() => setSuccess(''), 3000);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { 
-  Loader2, 
   AlertCircle, 
   Music,
   Video,

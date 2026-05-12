@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
-import { Loader2, Music, Globe, Crosshair, Map as MapIcon, Zap, Sparkles } from 'lucide-react';
+import { Globe, Crosshair, Map as MapIcon, Zap, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { motion } from 'framer-motion';
 
@@ -77,7 +77,6 @@ export const MapPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 pb-20">
-      {/* Map Header */}
       <section className="relative overflow-hidden rounded-[3.5rem] bg-[#0a0a0a] border border-white/5 p-12 md:p-16">
         <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
           <Globe className="w-80 h-80 text-blue-500" />
@@ -116,7 +115,6 @@ export const MapPage = () => {
         </div>
       </section>
 
-      {/* Map Container */}
       <div className="h-[75vh] w-full bg-[#0a0a0a] rounded-[4rem] border border-white/5 relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
         {loading ? (
            <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center">
@@ -132,8 +130,8 @@ export const MapPage = () => {
           >
             <ChangeView center={center} />
             <TileLayer
-              attribution='&copy; CARTO'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png"
             />
             {artists.map((artist) => (
               <Marker 
@@ -205,12 +203,6 @@ export const MapPage = () => {
         .leaflet-bar { border: none !important; }
         .leaflet-container .leaflet-overlay-pane svg { pointer-events: none; }
         .leaflet-tile-pane { filter: brightness(0.6) contrast(1.2) saturate(1.2); opacity: 0.9; }
-      `}</style>
-    </div>
-  );
-};
-ointer-events: none; }
-        .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(0.2) contrast(1.5); opacity: 0.6; }
       `}</style>
     </div>
   );

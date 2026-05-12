@@ -15,7 +15,6 @@ import {
   RefreshCcw,
   ShieldCheck,
   Video,
-  Play as AppleMusicIcon,
   ChevronRight,
   Library,
   Heart,
@@ -81,7 +80,6 @@ export const CatalogPage = () => {
   const linkedAccounts = useAuthStore(state => state.linkedAccounts);
   const isSpotifyConnected = linkedAccounts.some(a => a.platform === 'spotify');
   const isYoutubeLinked = linkedAccounts.some(a => a.platform === 'youtube');
-  const isAppleLinked = linkedAccounts.some(a => a.platform === 'apple');
   
   const navigate = useNavigate();
 
@@ -217,15 +215,6 @@ export const CatalogPage = () => {
       accent: 'text-[#FF0000]',
       desc: 'Access your YouTube Music collections and archive nodes.' 
     },
-    { 
-      id: 'apple', 
-      name: 'Apple Music', 
-      icon: AppleMusicIcon, 
-      linked: isAppleLinked, 
-      gradient: 'from-[#fa243c] to-[#1a1a1a]', 
-      accent: 'text-[#fa243c]',
-      desc: 'Browse your Apple Music library and personalized clusters.' 
-    },
   ];
 
   const handlePlatformSelect = (p: any) => {
@@ -233,12 +222,8 @@ export const CatalogPage = () => {
       navigate(`/sync/${p.id}`);
       return;
     }
-    if (p.id === 'spotify' || p.id === 'youtube') {
-      setActivePlatform(p.id as any);
-      setView('dashboard');
-    } else {
-      alert(`${p.name} integration is currently being optimized.`);
-    }
+    setActivePlatform(p.id as any);
+    setView('dashboard');
   };
 
   const topGenres = profile ? (topArtists?.[0]?.genres?.slice(0, 5) || []) : [];
@@ -267,7 +252,7 @@ export const CatalogPage = () => {
                 </p>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {platforms.map((p) => (
                     <motion.div 
                       key={p.id} 
@@ -308,7 +293,6 @@ export const CatalogPage = () => {
             exit={{ opacity: 0 }}
             className="space-y-16"
           >
-            {/* Header / Profile Section */}
             <div className="relative">
                 <button 
                   onClick={() => setView('welcome')}
@@ -330,10 +314,8 @@ export const CatalogPage = () => {
                   </div>
                 ) : profile && (
                   <div className="flex flex-col lg:flex-row items-stretch gap-8">
-                    {/* Refined Profile Card */}
                     <div className="flex-1 flex flex-col md:flex-row items-center gap-12 bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-white/5 relative overflow-hidden group shadow-2xl">
                       <div className={`absolute inset-0 bg-gradient-to-br ${activePlatform === 'spotify' ? 'from-[#1DB954]/10 to-transparent' : 'from-[#FF0000]/10 to-transparent'} opacity-50`}></div>
-                      
                       <div className="relative">
                         <div className={`absolute -inset-2 bg-gradient-to-tr ${activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'} rounded-full blur-xl opacity-20`}></div>
                         {profile.images?.[0]?.url || profile.avatar_url ? (
@@ -344,7 +326,6 @@ export const CatalogPage = () => {
                           </div>
                         )}
                       </div>
-
                       <div className="flex-1 text-center md:text-left z-10">
                         <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
                            <span className={`px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400`}>
@@ -362,7 +343,6 @@ export const CatalogPage = () => {
                                <span className="text-sm font-black text-white uppercase tracking-tighter">{profile.followers?.total || 0} Entities</span>
                             </div>
                         </div>
-                        
                         <div className="space-y-4">
                           <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Top Frequency Segments</p>
                           <div className="flex flex-wrap justify-center md:justify-start gap-3">
@@ -377,8 +357,6 @@ export const CatalogPage = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Time Range Selector */}
                     <div className="bg-[#0a0a0a] p-8 rounded-[3.5rem] border border-white/5 flex flex-col justify-center gap-4 min-w-[200px]">
                         <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center mb-4">Temporal Range</p>
                         <div className="flex flex-row lg:flex-col gap-3">
@@ -412,7 +390,6 @@ export const CatalogPage = () => {
               </div>
             ) : profile && (
               <div className="w-screen relative left-1/2 -ml-[50vw] overflow-x-auto flex gap-10 py-12 px-24 custom-scrollbar snap-x snap-mandatory">
-                {/* Phone 1: Top Artists */}
                 <PhoneSection 
                   title={selectedArtist && view === 'dashboard' ? selectedArtist.name : "Top Artists"} 
                   icon={Users} 
@@ -478,7 +455,6 @@ export const CatalogPage = () => {
                   )}
                 </PhoneSection>
 
-                {/* Phone 2: Top Tracks */}
                 <PhoneSection title="Top Tracks" icon={TrendingUp} color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}>
                    <div className="space-y-4">
                     {topTracks.map((track, i) => (
@@ -503,7 +479,6 @@ export const CatalogPage = () => {
                   </div>
                 </PhoneSection>
 
-                {/* Phone 3: Saved Albums */}
                 <PhoneSection 
                     title={selectedAlbum && view === 'dashboard' ? selectedAlbum.title : "Saved Albums"} 
                     icon={Disc} 
@@ -569,7 +544,6 @@ export const CatalogPage = () => {
                     )}
                 </PhoneSection>
 
-                {/* Phone 4: Recent Activity */}
                 <PhoneSection title="Recent History" icon={History} color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}>
                    <div className="space-y-4">
                     {recentTracks.map((track, i) => (
@@ -599,7 +573,6 @@ export const CatalogPage = () => {
                   </div>
                 </PhoneSection>
 
-                 {/* Phone 5: Playlists */}
                  <PhoneSection 
                     title={selectedPlaylist && view === 'dashboard' ? selectedPlaylist.name : "Playlists"} 
                     icon={Layers} 
@@ -863,7 +836,7 @@ export const CatalogPage = () => {
 
       <div className="mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 opacity-30 px-10">
         <div className="flex items-center gap-4">
-           <div className={`w-2 h-2 rounded-full ${activePlatform === 'spotify' ? 'bg-[#1DB954]' : 'bg-[#FF0000]'} animate-pulse`}></div>
+           <div className="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse"></div>
            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-500">Neural Sync: Established</span>
         </div>
         <div className="flex items-center gap-8">
@@ -872,8 +845,5 @@ export const CatalogPage = () => {
         </div>
       </div>
     </div>
-  );
-};
-v>
   );
 };
