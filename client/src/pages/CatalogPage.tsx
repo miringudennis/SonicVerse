@@ -112,11 +112,8 @@ export const CatalogPage = () => {
         api.get(`/${activePlatform}/top-tracks?time_range=${timeRange}`, { headers }),
         api.get(`/${activePlatform}/recently-played`, { headers }),
         api.get(`/${activePlatform}/playlists`, { headers }),
+        api.get(`/${activePlatform}/albums`, { headers }),
       ];
-
-      if (activePlatform === 'spotify') {
-        endpoints.push(api.get(`/spotify/albums`, { headers }));
-      }
 
       const results = await Promise.allSettled(endpoints);
 
@@ -125,10 +122,7 @@ export const CatalogPage = () => {
       if (results[2].status === 'fulfilled') setTopTracks(results[2].value.data);
       if (results[3].status === 'fulfilled') setRecentTracks(results[3].value.data);
       if (results[4].status === 'fulfilled') setPlaylists(results[4].value.data);
-      
-      if (activePlatform === 'spotify' && results[5]?.status === 'fulfilled') {
-        setAlbums(results[5].value.data);
-      }
+      if (results[5].status === 'fulfilled') setAlbums(results[5].value.data);
 
       if (results[0].status === 'rejected') {
         setError(`${activePlatform === 'spotify' ? 'Spotify' : 'YouTube'} session expired. Please re-sync.`);
@@ -507,7 +501,7 @@ export const CatalogPage = () => {
                 </PhoneSection>
 
                 {/* Phone 3: Top Albums (NEW) */}
-                {activePlatform === 'spotify' && (
+                {(activePlatform === 'spotify' || activePlatform === 'youtube') && (
                   <PhoneSection 
                     title={selectedAlbum && view === 'dashboard' ? selectedAlbum.title : "Saved Albums"} 
                     icon={Disc} 

@@ -11,6 +11,9 @@ router.get('/top-artists', authMiddleware, youtubeController.getTopArtists);
 router.get('/recently-played', authMiddleware, youtubeController.getRecentlyPlayed);
 router.get('/playlists', authMiddleware, youtubeController.getPlaylists);
 router.get('/playlist/:playlistId/tracks', authMiddleware, youtubeController.getPlaylistTracks);
+router.get('/albums', authMiddleware, youtubeController.getAlbums);
+router.get('/album/:albumId/tracks', authMiddleware, youtubeController.getAlbumTracks);
+router.get('/artist/:artistId/discography', authMiddleware, youtubeController.getArtistDiscography);
 router.get('/neural-insights', authMiddleware, youtubeController.getNeuralInsights);
 
 module.exports = router;
