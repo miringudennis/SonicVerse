@@ -107,10 +107,12 @@ exports.getRecentlyPlayed = async (req, res) => {
       .filter(item => item.snippet.type === 'upload' || item.snippet.type === 'playlistItem')
       .map(item => ({
         id: item.contentDetails.upload?.videoId || item.id,
+        videoId: item.contentDetails.upload?.videoId || item.id,
         title: item.snippet.title,
         artist_name: item.snippet.channelTitle,
         cover_url: item.snippet.thumbnails.high?.url,
         played_at: item.snippet.publishedAt,
+        external_url: `https://music.youtube.com/watch?v=${item.contentDetails.upload?.videoId || item.id}`,
         source: 'YouTube Music'
       }));
 
@@ -177,6 +179,7 @@ exports.getPlaylistTracks = async (req, res) => {
       title: item.snippet.title,
       artist_name: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle,
       cover_url: item.snippet.thumbnails.high?.url,
+      external_url: `https://music.youtube.com/watch?v=${item.contentDetails.videoId}`,
       source: 'YouTube Music',
       isExternal: true
     }));
@@ -209,7 +212,7 @@ exports.getTopTracks = async (req, res) => {
     });
 
     const tracks = response.data.items
-      .filter(video => video.snippet.categoryId === '10' || video.snippet.title.toLowerCase().includes('music'))
+      .filter(video => video.snippet.categoryId === '10') // Strictly Music Category
       .map(video => ({
         id: video.id,
         videoId: video.id,
@@ -218,6 +221,7 @@ exports.getTopTracks = async (req, res) => {
         cover_url: video.snippet.thumbnails.high?.url || video.snippet.thumbnails.default?.url,
         duration: video.contentDetails.duration,
         source: 'YouTube Music',
+        external_url: `https://music.youtube.com/watch?v=${video.id}`,
         isExternal: true
       }));
 
@@ -358,6 +362,7 @@ exports.getArtistDiscography = async (req, res) => {
         duration_ms: 0, // YouTube search doesn't return duration
         cover_url: track.snippet.thumbnails.high?.url,
         artist_name: track.snippet.channelTitle,
+        external_url: `https://music.youtube.com/watch?v=${track.id.videoId}`,
         source: 'YouTube Music',
         play_count: Math.floor(Math.random() * 1500 + 200)
       }))
@@ -405,6 +410,7 @@ exports.getNeuralInsights = async (req, res) => {
         title: item.snippet.title,
         artist_name: item.snippet.channelTitle,
         cover_url: item.snippet.thumbnails.high?.url,
+        external_url: `https://music.youtube.com/watch?v=${item.id.videoId}`,
         source: 'YouTube Music'
     }));
 
