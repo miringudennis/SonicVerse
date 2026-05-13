@@ -27,9 +27,10 @@ import api from '../services/api';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 type TimeRange = 'short_term' | 'medium_term' | 'long_term';
-type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail';
+type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail' | 'playlist-detail';
 
 const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
   <div className="flex flex-col h-[650px] w-[320px] shrink-0 bg-[#0a0a0a] rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden relative group snap-center">
@@ -71,7 +72,6 @@ export const CatalogPage = () => {
   const [playlistLoading, setPlaylistLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('medium_term');
   const [view, setView] = useState<ViewState>('welcome');
   const [activePlatform, setActivePlatform] = useState<'spotify' | 'youtube'>('spotify');
@@ -80,6 +80,7 @@ export const CatalogPage = () => {
   const linkedAccounts = useAuthStore(state => state.linkedAccounts);
   const isSpotifyConnected = linkedAccounts.some(a => a.platform === 'spotify');
   const isYoutubeLinked = linkedAccounts.some(a => a.platform === 'youtube');
+  const isAppleLinked = linkedAccounts.some(a => a.platform === 'apple');
   
   const navigate = useNavigate();
 
@@ -92,11 +93,10 @@ export const CatalogPage = () => {
 
   const fetchAllData = async () => {
     setLoading(true);
-    setError(null);
     const token = localStorage.getItem(`${activePlatform}_token`);
     
     if (!token) {
-      setError(`${activePlatform === 'spotify' ? 'Spotify' : 'YouTube Music'} access token missing. Please re-connect.`);
+      toast.error(`${activePlatform === 'spotify' ? 'Spotify' : 'YouTube Music'} access token missing.`);
       setLoading(false);
       return;
     }
@@ -123,11 +123,11 @@ export const CatalogPage = () => {
       if (results[5].status === 'fulfilled') setAlbums(results[5].value.data);
 
       if (results[0].status === 'rejected') {
-        setError(`${activePlatform === 'spotify' ? 'Spotify' : 'YouTube'} session expired. Please re-sync.`);
+        toast.error(`${activePlatform === 'spotify' ? 'Spotify' : 'YouTube'} session expired.`);
       }
     } catch (err) {
       console.error('Unexpected error during data fetch:', err);
-      setError('An unexpected error occurred.');
+      toast.error('An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -215,10 +215,22 @@ export const CatalogPage = () => {
       accent: 'text-[#FF0000]',
       desc: 'Access your YouTube Music collections and archive nodes.' 
     },
+    { 
+      id: 'apple', 
+      name: 'Apple Music', 
+      icon: Layers, 
+      linked: isAppleLinked, 
+      gradient: 'from-[#FA243C] to-[#1a1a1a]', 
+      accent: 'text-[#FA243C]',
+      desc: 'Sync your Apple Music library and premium high-fidelity tracks.' 
+    },
   ];
-
   const handlePlatformSelect = (p: any) => {
     if (!p.linked) {
+      if (p.id === 'apple') {
+        toast.error('Apple Music integration pending protocol release.');
+        return;
+      }
       navigate(`/sync/${p.id}`);
       return;
     }
@@ -238,21 +250,21 @@ export const CatalogPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <section className="text-center mb-20 relative overflow-hidden rounded-[3.5rem] bg-[#0a0a0a] border border-white/5 p-16 md:p-24">
+            <section className="text-center mb-10 relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(99,102,241,0.05)_0%,_transparent_70%)]" />
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-10 relative z-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6 relative z-10">
                     <Library className="w-3 h-3" />
                     <span>Neural Catalog Access Protocol</span>
                 </div>
-                <h1 className="text-6xl md:text-[8rem] font-black text-white uppercase italic tracking-tighter leading-none mb-10 relative z-10">
+                <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-6 relative z-10">
                     Neural <br /> Archives.
                 </h1>
-                <p className="text-gray-400 text-xl max-w-2xl mx-auto font-medium leading-relaxed relative z-10">
+                <p className="text-gray-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed relative z-10">
                     Access your synchronized archives from across the streaming universe. SonicVerse synthesizes your libraries into a unified modular catalog.
                 </p>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {platforms.map((p) => (
                     <motion.div 
                       key={p.id} 
@@ -301,18 +313,7 @@ export const CatalogPage = () => {
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Archives
                 </button>
 
-                {error && !profile ? (
-                   <div className="bg-red-500/5 p-20 rounded-[3.5rem] border border-red-500/10 flex flex-col items-center text-center">
-                    <AlertCircle className="w-16 h-16 text-red-500 mb-8 opacity-30" />
-                    <h2 className="text-3xl font-black text-white mb-4 uppercase italic tracking-tighter">{error}</h2>
-                    <button 
-                        onClick={fetchAllData}
-                        className="flex items-center gap-3 px-10 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all"
-                    >
-                        <RefreshCcw className="w-4 h-4" /> Re-sync Protocol
-                    </button>
-                  </div>
-                ) : profile && (
+                {profile && (
                   <div className="flex flex-col lg:flex-row items-stretch gap-8">
                     <div className="flex-1 flex flex-col md:flex-row items-center gap-12 bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-white/5 relative overflow-hidden group shadow-2xl">
                       <div className={`absolute inset-0 bg-gradient-to-br ${activePlatform === 'spotify' ? 'from-[#1DB954]/10 to-transparent' : 'from-[#FF0000]/10 to-transparent'} opacity-50`}></div>
@@ -833,17 +834,6 @@ export const CatalogPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 opacity-30 px-10">
-        <div className="flex items-center gap-4">
-           <div className="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse"></div>
-           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-500">Neural Sync: Established</span>
-        </div>
-        <div className="flex items-center gap-8">
-           <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em]">Protocol V2.4</p>
-           <Lock className="w-3 h-3 text-gray-700" />
-        </div>
-      </div>
     </div>
   );
 };

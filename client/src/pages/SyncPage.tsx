@@ -4,6 +4,8 @@ import api from '../services/api';
 import { Music, ArrowRight, Loader2, Video, X, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
+import { AppBackground } from '../components/AppBackground';
+import toast from 'react-hot-toast';
 
 const PLATFORMS = {
   spotify: {
@@ -59,7 +61,11 @@ export const SyncPage = () => {
             window.location.href = data.url;
         } else {
             // Placeholder for other platforms
-            setTimeout(() => navigate('/discover'), 1000);
+            setTimeout(() => {
+              setLoading(false);
+              toast.error('Apple Music integration pending protocol release.');
+              setTimeout(() => navigate('/discover'), 1500);
+            }, 1000);
         }
     } catch (err) {
         console.error('Connection failed', err);
@@ -69,7 +75,7 @@ export const SyncPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-6 relative overflow-hidden">
-      <div className={`absolute top-[-20%] left-[-10%] w-[60%] h-[60%] opacity-20 blur-[150px] rounded-full ${selectedPlatform.color}`} />
+      <AppBackground />
       
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}

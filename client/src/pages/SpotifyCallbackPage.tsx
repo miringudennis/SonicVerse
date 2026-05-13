@@ -33,11 +33,22 @@ export const SpotifyCallbackPage = () => {
           });
           // Store token in localStorage for now to allow API calls
           localStorage.setItem('spotify_token', data.access_token);
-          navigate('/discover');
+          
+          if (window.opener) {
+            window.opener.postMessage({ type: 'SYNC_SUCCESS', platform: 'spotify' }, '*');
+            window.close();
+          } else {
+            navigate('/discover');
+          }
         }
       } catch (err) {
         console.error('Spotify Auth Failed', err);
-        navigate('/sync/spotify');
+        if (window.opener) {
+            window.opener.postMessage({ type: 'SYNC_ERROR', platform: 'spotify', error: 'Auth failed' }, '*');
+            window.close();
+        } else {
+            navigate('/sync/spotify');
+        }
       }
     };
 

@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
-import { Globe, Crosshair, Map as MapIcon, Zap, Sparkles } from 'lucide-react';
+import { Globe, Crosshair, Map as MapIcon, Zap, Sparkles, Plus, Minus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { motion } from 'framer-motion';
 
@@ -36,6 +36,26 @@ const ChangeView = ({ center }: { center: [number, number] }) => {
     map.setView(center, map.getZoom(), { animate: true, duration: 1.5 });
   }, [center, map]);
   return null;
+};
+
+const ZoomControls = () => {
+  const map = useMap();
+  return (
+    <div className="absolute bottom-10 right-10 z-[1000] flex flex-col gap-3">
+      <button 
+        onClick={() => map.zoomIn()}
+        className="w-12 h-12 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all shadow-2xl"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+      <button 
+        onClick={() => map.zoomOut()}
+        className="w-12 h-12 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all shadow-2xl"
+      >
+        <Minus className="w-6 h-6" />
+      </button>
+    </div>
+  );
 };
 
 export const MapPage = () => {
@@ -76,21 +96,21 @@ export const MapPage = () => {
   }, [linkedAccounts]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
-      <section className="relative overflow-hidden rounded-[3.5rem] bg-[#0a0a0a] border border-white/5 p-12 md:p-16">
-        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-          <Globe className="w-80 h-80 text-blue-500" />
+    <div className="max-w-7xl mx-auto space-y-12">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12">
+        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+          <Globe className="w-64 h-64 text-blue-500" />
         </div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
               <Sparkles className="w-3 h-3" />
               <span>Global Frequency Mapping</span>
             </div>
-            <h1 className="text-5xl md:text-[5rem] font-black text-white uppercase italic tracking-tighter leading-none mb-6">
+            <h1 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-2">
               Sonic <br /> Cartography.
             </h1>
-            <p className="text-gray-400 text-lg max-w-xl font-medium leading-relaxed">
+            <p className="text-gray-400 text-base max-w-xl font-medium leading-relaxed">
               Discover the geographical roots of sound. Mapping the origins of your archived artists across the global verse.
             </p>
           </div>
@@ -129,6 +149,7 @@ export const MapPage = () => {
             zoomControl={false}
           >
             <ChangeView center={center} />
+            <ZoomControls />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png"

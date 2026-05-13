@@ -39,22 +39,22 @@ export const SocialFeedPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-20">
+    <div className="max-w-4xl mx-auto space-y-12">
       {/* Feed Header */}
-      <section className="relative overflow-hidden rounded-[3.5rem] bg-[#0a0a0a] border border-white/5 p-12 md:p-16 shadow-2xl">
-        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-          <MessageSquare className="w-80 h-80 text-blue-500 -rotate-12" />
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
+        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+          <MessageSquare className="w-48 h-48 text-blue-500 -rotate-12" />
         </div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
                 <Sparkles className="w-3 h-3" />
                 <span>Global Activity Stream</span>
               </div>
-              <h1 className="text-5xl md:text-[5rem] font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+              <h1 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-2">
                 Social <br /> Verse.
               </h1>
-              <p className="text-gray-400 text-lg max-w-xl font-medium leading-relaxed">
+              <p className="text-gray-400 text-base max-w-xl font-medium leading-relaxed">
                 Connect with the collective. Share your neural discoveries and sonic experiences with the world.
               </p>
            </div>
@@ -133,72 +133,72 @@ export const SocialFeedPage = () => {
         <AnimatePresence mode="popLayout">
           {posts.map((post, idx) => (
             <motion.div 
-              key={post.id} 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="bg-[#0a0a0a] p-10 rounded-[3.5rem] border border-white/5 hover:border-white/10 transition-all shadow-xl group relative overflow-hidden"
+            key={post.id} 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="bg-[#0a0a0a] p-4 rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all shadow-lg group relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 p-10 opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none">
-                 <Sparkles className="w-24 h-24 text-blue-500" />
-              </div>
+            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none">
+               <Sparkles className="w-10 h-10 text-blue-500" />
+            </div>
 
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-blue-400 text-xl uppercase group-hover:scale-110 transition-transform">
-                    {post.username?.[0] || 'U'}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-black text-blue-400 text-sm uppercase group-hover:scale-110 transition-transform">
+                  {post.username?.[0] || 'U'}
+                </div>
+                <div>
+                  <h4 className="font-black text-white text-sm uppercase italic tracking-tighter leading-none mb-0.5 group-hover:text-blue-400 transition-colors">{post.username}</h4>
+                  <div className="flex items-center gap-1.5 opacity-50">
+                     <Clock className="w-2 h-2 text-gray-500" />
+                     <p className="text-gray-500 text-[7px] font-black uppercase tracking-[0.15em]">{new Date(post.created_at).toLocaleDateString()} // {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                  <div>
-                    <h4 className="font-black text-white text-xl uppercase italic tracking-tighter leading-none mb-1 group-hover:text-blue-400 transition-colors">{post.username}</h4>
-                    <div className="flex items-center gap-2 opacity-50">
-                       <Clock className="w-3 h-3 text-gray-500" />
-                       <p className="text-gray-500 text-[9px] font-black uppercase tracking-[0.2em]">{new Date(post.created_at).toLocaleDateString()} // {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                 <div className="w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                 <span className="text-[6px] font-black text-gray-600 uppercase tracking-widest">Verified</span>
+              </div>
+            </div>
+
+            <p className="text-gray-300 text-xs mb-3 leading-relaxed font-medium px-1">{post.content}</p>
+
+            {post.song_title && (
+                <div className="bg-white/5 p-2 rounded-[0.75rem] border border-white/5 mb-3 flex items-center justify-between group/song hover:bg-white/10 transition-all cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-10 h-10 rounded-lg overflow-hidden shadow-xl">
+                         <img src={post.song_cover || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop'} alt={post.song_title} className="w-full h-full object-cover group-hover/song:scale-110 transition-transform duration-700" />
+                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/song:opacity-100 transition-opacity">
+                            <Music className="w-3 h-3 text-white" />
+                         </div>
+                      </div>
+                      <div>
+                          <h5 className="font-black text-white text-xs uppercase italic tracking-tighter leading-none mb-0.5">{post.song_title}</h5>
+                          <p className="text-gray-500 text-[7px] font-black uppercase tracking-[0.15em]">Signal Synchronized</p>
+                      </div>
                     </div>
-                  </div>
+                    <div className="w-6 h-6 rounded-full border border-white/10 flex items-center justify-center text-gray-500 group-hover/song:text-white group-hover/song:border-white/30 transition-all">
+                       <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-                   <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Node Verified</span>
-                </div>
-              </div>
+            )}
 
-              <p className="text-gray-300 text-lg mb-10 leading-relaxed font-medium px-2">{post.content}</p>
-
-              {post.song_title && (
-                  <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 mb-10 flex items-center justify-between group/song hover:bg-white/10 transition-all cursor-pointer">
-                      <div className="flex items-center gap-6">
-                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-2xl">
-                           <img src={post.song_cover || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop'} alt={post.song_title} className="w-full h-full object-cover group-hover/song:scale-110 transition-transform duration-700" />
-                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/song:opacity-100 transition-opacity">
-                              <Music className="w-6 h-6 text-white" />
-                           </div>
-                        </div>
-                        <div>
-                            <h5 className="font-black text-white text-lg uppercase italic tracking-tighter leading-none mb-1">{post.song_title}</h5>
-                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Signal Synchronized via SonicVerse</p>
-                        </div>
-                      </div>
-                      <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-gray-500 group-hover/song:text-white group-hover/song:border-white/30 transition-all">
-                         <Play className="w-5 h-5 fill-current ml-1" />
-                      </div>
-                  </div>
-              )}
-
-              <div className="flex items-center gap-10 text-gray-600 border-t border-white/5 pt-8 px-2">
-                <button className="flex items-center gap-2.5 hover:text-pink-500 transition-all text-[10px] font-black uppercase tracking-widest group/btn">
-                  <Heart className="w-5 h-5 group-hover/btn:fill-current group-hover/btn:scale-110 transition-transform" /> 
-                  <span>842</span>
-                </button>
-                <button className="flex items-center gap-2.5 hover:text-blue-500 transition-all text-[10px] font-black uppercase tracking-widest group/btn">
-                  <MessageSquare className="w-5 h-5 group-hover/btn:scale-110 transition-transform" /> 
-                  <span>12</span>
-                </button>
-                <div className="flex-1" />
-                <button className="flex items-center gap-2.5 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest group/btn">
-                  <Share2 className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" /> 
-                  <span className="hidden sm:inline">Propagate</span>
-                </button>
-              </div>
+            <div className="flex items-center gap-4 text-gray-600 border-t border-white/5 pt-3 px-1">
+              <button className="flex items-center gap-1.5 hover:text-pink-500 transition-all text-[7px] font-black uppercase tracking-widest group/btn">
+                <Heart className="w-3 h-3 group-hover/btn:fill-current group-hover/btn:scale-110 transition-transform" /> 
+                <span>842</span>
+              </button>
+              <button className="flex items-center gap-1.5 hover:text-blue-500 transition-all text-[7px] font-black uppercase tracking-widest group/btn">
+                <MessageSquare className="w-3 h-3 group-hover/btn:scale-110 transition-transform" /> 
+                <span>12</span>
+              </button>
+              <div className="flex-1" />
+              <button className="flex items-center gap-1.5 hover:text-white transition-all text-[7px] font-black uppercase tracking-widest group/btn">
+                <Share2 className="w-3 h-3 group-hover/btn:rotate-12 transition-transform" /> 
+                <span className="hidden sm:inline">Propagate</span>
+              </button>
+            </div>
             </motion.div>
           ))}
         </AnimatePresence>

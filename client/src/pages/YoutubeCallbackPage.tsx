@@ -33,11 +33,22 @@ export const YoutubeCallbackPage = () => {
           });
           // Store token in localStorage
           localStorage.setItem('youtube_token', data.access_token);
-          navigate('/discover');
+          
+          if (window.opener) {
+            window.opener.postMessage({ type: 'SYNC_SUCCESS', platform: 'youtube' }, '*');
+            window.close();
+          } else {
+            navigate('/discover');
+          }
         }
       } catch (err) {
         console.error('YouTube Auth Failed', err);
-        navigate('/sync/youtube');
+        if (window.opener) {
+            window.opener.postMessage({ type: 'SYNC_ERROR', platform: 'youtube', error: 'Auth failed' }, '*');
+            window.close();
+        } else {
+            navigate('/sync/youtube');
+        }
       }
     };
 

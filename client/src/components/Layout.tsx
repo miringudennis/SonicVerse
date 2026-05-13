@@ -3,8 +3,11 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown, Menu, X, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 import { Player } from './Player';
-import { ShaderBackground } from './ShaderBackground';
+import { AppBackground } from './AppBackground';
+import { Footer } from './Footer';
+import { SyncModal } from './SyncModal';
 
 interface Props {
   children: ReactNode;
@@ -105,6 +108,7 @@ const UserDropdown = () => {
 
 export const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isSyncModalOpen, closeSyncModal } = useUIStore();
 
   const navLinks = [
     { to: '/dashboard', icon: LayoutGrid, label: 'Dash' },
@@ -116,98 +120,106 @@ export const Layout = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30 font-sans">
-      <ShaderBackground />
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
+      <AppBackground />
+      
+      <div className={`transition-all duration-700 ease-in-out ${isSyncModalOpen ? 'blur-2xl scale-[0.98] opacity-50 pointer-events-none' : ''}`}>
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
+        </div>
+
+        <nav className="fixed top-0 left-0 right-0 h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5 z-[1000] flex items-center justify-between px-8">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+
+            <Link to="/dashboard" className="flex items-center gap-2 font-black text-2xl tracking-tighter group">
+               <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-12 transition-transform">
+                 <Music className="w-6 h-6 text-white" />
+               </div>
+               <span className="hidden xs:block bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">SonicVerse</span>
+            </Link>
+          </div>
+
+          <div className="hidden md:flex items-center gap-1 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+            {navLinks.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => 
+                  `flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
+                    isActive ? 'bg-white text-black shadow-xl shadow-white/5' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button className="p-3 rounded-full bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all relative">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full border border-black" />
+            </button>
+            <UserDropdown />
+          </div>
+        </nav>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-24 left-6 right-6 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl z-[999] md:hidden overflow-hidden"
+            >
+              <div className="flex flex-col p-4 gap-2">
+                {navLinks.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) => 
+                      `flex items-center gap-4 p-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                        isActive ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/5'
+                      }`
+                    }
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <main className="relative z-10 pt-28 px-6 max-w-7xl mx-auto">
+          <ErrorBoundary fallback={<div className="p-10 border border-red-500/20 rounded-[2rem] bg-red-900/5 text-red-500 font-black uppercase tracking-widest text-center text-xs">Sonic Driver Conflict: Component Failed</div>}>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+
+        <Footer />
+
+        <ErrorBoundary fallback={null}>
+           <div className="fixed bottom-0 left-0 right-0 z-[1001] px-6 pb-6 pointer-events-none">
+             <div className="max-w-7xl mx-auto pointer-events-auto">
+               <Player />
+             </div>
+           </div>
+        </ErrorBoundary>
       </div>
 
-      <nav className="fixed top-0 left-0 right-0 h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5 z-[1000] flex items-center justify-between px-8">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-
-          <Link to="/dashboard" className="flex items-center gap-2 font-black text-2xl tracking-tighter group">
-             <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-12 transition-transform">
-               <Music className="w-6 h-6 text-white" />
-             </div>
-             <span className="hidden xs:block bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">SonicVerse</span>
-          </Link>
-        </div>
-
-        <div className="hidden md:flex items-center gap-1 bg-white/5 p-1.5 rounded-2xl border border-white/5">
-          {navLinks.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => 
-                `flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
-                  isActive ? 'bg-white text-black shadow-xl shadow-white/5' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`
-              }
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button className="p-3 rounded-full bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full border border-black" />
-          </button>
-          <UserDropdown />
-        </div>
-      </nav>
-
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 left-6 right-6 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl z-[999] md:hidden overflow-hidden"
-          >
-            <div className="flex flex-col p-4 gap-2">
-              {navLinks.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={({ isActive }) => 
-                    `flex items-center gap-4 p-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
-                      isActive ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/5'
-                    }`
-                  }
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
-                </NavLink>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="relative z-10 pt-28 pb-32 px-6 max-w-7xl mx-auto">
-        <ErrorBoundary fallback={<div className="p-10 border border-red-500/20 rounded-[2rem] bg-red-900/5 text-red-500 font-black uppercase tracking-widest text-center text-xs">Sonic Driver Conflict: Component Failed</div>}>
-          <Outlet />
-        </ErrorBoundary>
-      </main>
-
-      <ErrorBoundary fallback={null}>
-         <div className="fixed bottom-0 left-0 right-0 z-[1001] px-6 pb-6 pointer-events-none">
-           <div className="max-w-7xl mx-auto pointer-events-auto">
-             <Player />
-           </div>
-         </div>
-      </ErrorBoundary>
+      <SyncModal 
+        isOpen={isSyncModalOpen} 
+        onClose={closeSyncModal} 
+      />
     </div>
   );
 };

@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { Music, ArrowRight, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Music, ArrowRight, Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WelcomeCanvas } from '../components/WelcomeCanvas';
+import toast from 'react-hot-toast';
 
 export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
@@ -18,15 +19,15 @@ export const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     
     try {
       const res = await api.post('/auth/register', { email, username, password });
       setAuth(res.data.user, res.data.token);
+      toast.success('Neural identity registered.');
       navigate('/dashboard');
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data?.detail || 'Registration failed. Please try again.';
-      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -59,16 +60,6 @@ export const RegisterPage = () => {
             <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">Create Identity</h2>
             <p className="text-gray-400 mt-3 font-medium">Join the global sonic collective.</p>
           </div>
-
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl mb-8 text-xs font-black uppercase tracking-widest text-center"
-            >
-              {error}
-            </motion.div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -114,14 +105,21 @@ export const RegisterPage = () => {
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Create Password"
-                  className="w-full bg-white/5 border border-white/10 p-4 pl-14 rounded-2xl focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-white placeholder:text-gray-700 font-bold"
+                  className="w-full bg-white/5 border border-white/10 p-4 pl-14 pr-14 rounded-2xl focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-white placeholder:text-gray-700 font-bold"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
