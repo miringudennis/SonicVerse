@@ -24,6 +24,17 @@ export const Player = () => {
   const [showQueue, setShowQueue] = useState(false);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay]);
+
+  useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.volume = volume;
   }, [volume]);
@@ -163,31 +174,35 @@ export const Player = () => {
         className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-xl border-t border-gray-800 text-white p-4 flex items-center justify-between z-[1000] cursor-pointer"
       >
         <div className="flex items-center gap-4 w-1/3">
-          <motion.img 
+          <motion.div 
             layoutId="player-art-mini"
-            src={currentSong.cover_url} 
-            alt={currentSong.title} 
-            className="w-12 h-12 rounded-lg object-cover shadow-lg" 
-          />
+            className="w-14 h-14 rounded-2xl overflow-hidden shadow-2xl relative group cursor-pointer"
+            onClick={() => !isFullScreen && setFullScreen(true)}
+          >
+            <img src={currentSong.cover_url} alt={currentSong.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <ChevronDown className="w-6 h-6 text-white rotate-180" />
+            </div>
+          </motion.div>
           <div className="truncate">
-            <h4 className="font-bold text-sm truncate">{currentSong.title}</h4>
-            <p className="text-gray-400 text-xs truncate">{currentSong.artist_name}</p>
+            <h4 className="font-black text-white text-sm uppercase italic tracking-tighter truncate">{currentSong.title}</h4>
+            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.15em] truncate">{currentSong.artist_name}</p>
           </div>
         </div>
 
         <div className="hidden md:flex flex-col items-center gap-2 flex-1 max-w-xl" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-6">
-            <SkipBack onClick={previous} className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
+            <SkipBack onClick={previous} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-white transition-colors" />
             <button 
               onClick={togglePlay}
-              className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all active:scale-95"
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all active:scale-95 shadow-lg shadow-white/5"
             >
-              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-1 fill-current" />}
+              {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
             </button>
-            <SkipForward onClick={next} className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
+            <SkipForward onClick={next} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-white transition-colors" />
           </div>
           <div className="w-full flex items-center gap-3">
-            <span className="text-[10px] font-mono text-gray-500 w-8 text-right">
+            <span className="text-[9px] font-black text-gray-600 w-8 text-right tracking-widest">
               {Math.floor(currentTime / 60)}:{(Math.floor(currentTime % 60)).toString().padStart(2, '0')}
             </span>
             <input 
@@ -197,16 +212,16 @@ export const Player = () => {
               step="0.1"
               value={currentTime} 
               onChange={handleSeek}
-              className="flex-1 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+              className="flex-1 h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500 hover:h-1.5 transition-all"
             />
-            <span className="text-[10px] font-mono text-gray-500 w-8">
+            <span className="text-[9px] font-black text-gray-600 w-8 tracking-widest">
               {Math.floor(duration / 60)}:{(Math.floor(duration % 60)).toString().padStart(2, '0')}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 w-1/3 justify-end" onClick={(e) => e.stopPropagation()}>
-          <Volume2 className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center gap-3 w-1/3 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Volume2 className="w-4 h-4 text-gray-500" />
           <input 
             type="range"
             min="0"
@@ -214,7 +229,7 @@ export const Player = () => {
             step="0.01"
             value={volume}
             onChange={handleVolumeChange}
-            className="w-24 bg-gray-700 h-1 rounded-full appearance-none cursor-pointer accent-white"
+            className="w-20 bg-white/10 h-1 rounded-full appearance-none cursor-pointer accent-white hover:h-1.5 transition-all"
           />
         </div>
 
