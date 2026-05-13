@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, ChevronDown, MoreHorizontal, Share2, ListMusic, Video } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, ChevronDown, MoreHorizontal, Share2, ListMusic } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { monochromeService } from '../services/monochrome';
+import toast from 'react-hot-toast';
 
 export const Player = () => {
   const { 
@@ -22,6 +24,24 @@ export const Player = () => {
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [showQueue, setShowQueue] = useState(false);
+  const [audioSrc, setAudioSrc] = useState<string>(currentSong?.audio_url || '');
+
+  useEffect(() => {
+    const fetchStream = async () => {
+        if (currentSong?.id) {
+            try {
+                const streamUrl = await monochromeService.getStreamUrl(currentSong.id);
+                setAudioSrc(streamUrl);
+            } catch (err) {
+                toast.error('High-fidelity stream unavailable.');
+                setAudioSrc(currentSong.audio_url || '');
+            }
+        } else {
+            setAudioSrc(currentSong?.audio_url || '');
+        }
+    };
+    fetchStream();
+  }, [currentSong]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -82,58 +102,43 @@ export const Player = () => {
 
   if (!currentSong) return null;
 
-  // If YouTube and no preview, we'd ideally show an embed, but for now we focus on functional controls
-  const isYoutube = currentSong.source === 'YouTube Music' || !!currentSong.videoId;
-
   return (
     <>
       <AnimatePresence>
         {isFullScreen && (
           <motion.div 
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[2000] bg-gradient-to-b from-gray-800 to-black p-8 flex flex-col md:hidden"
+            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            animate={{ opacity: 1, backdropFilter: 'blur(30px)' }}
+            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            className="fixed inset-0 z-[2000] bg-black/80 p-8 flex flex-col md:hidden"
           >
-            <div className="flex items-center justify-between mb-8">
-              <button onClick={() => setFullScreen(false)}>
+            {/* Celestial Background Effect */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(59,130,246,0.1)_0%,_transparent_70%)]" />
+
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <button onClick={() => setFullScreen(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-all">
                 <ChevronDown className="w-8 h-8 text-white" />
               </button>
               <div className="text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Playing from</p>
-                <p className="text-xs font-bold text-white uppercase">{currentSong.source || 'SonicVerse'}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500">Celestial Stream</p>
               </div>
               <MoreHorizontal className="w-8 h-8 text-white" />
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center gap-12">
+            <div className="flex-1 flex flex-col items-center justify-center gap-12 relative z-10">
               <motion.div 
                 layoutId="player-art"
-                className="w-full aspect-square max-w-[320px] rounded-2xl overflow-hidden shadow-2xl shadow-black/50 relative"
+                className="w-full aspect-square max-w-[320px] rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.3)] border border-white/10 relative"
               >
                 <img src={currentSong.cover_url} className="w-full h-full object-cover" alt="" />
-                {isYoutube && (
-                    <div className="absolute top-4 right-4 p-2 bg-red-600 rounded-lg">
-                        <Video className="w-4 h-4 text-white" />
-                    </div>
-                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </motion.div>
 
               <div className="w-full">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="truncate">
-                    <h2 className="text-2xl font-black text-white truncate italic uppercase tracking-tighter">{currentSong.title}</h2>
-                    <p className="text-lg text-gray-400 font-bold">{currentSong.artist_name}</p>
-                  </div>
-                  <button className="text-white">
-                    <div className="w-6 h-6 border-2 border-white rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                    </div>
-                  </button>
-                </div>
+                <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter text-center">{currentSong.title}</h2>
+                <p className="text-lg text-blue-400 font-bold text-center mt-2">{currentSong.artist_name}</p>
 
-                <div className="space-y-2 mt-8">
+                <div className="space-y-4 mt-12">
                   <input 
                     type="range" 
                     min="0" 
@@ -141,7 +146,7 @@ export const Player = () => {
                     step="0.1"
                     value={currentTime} 
                     onChange={handleSeek}
-                    className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-white"
+                    className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"
                   />
                   <div className="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
                     <span>{Math.floor(currentTime / 60)}:{(Math.floor(currentTime % 60)).toString().padStart(2, '0')}</span>
@@ -149,19 +154,19 @@ export const Player = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-8">
-                  <Share2 className="w-6 h-6 text-gray-400" />
+                <div className="flex items-center justify-between mt-10">
+                  <Share2 className="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" />
                   <div className="flex items-center gap-8">
-                    <SkipBack onClick={(e) => { e.stopPropagation(); previous(); }} className="w-10 h-10 text-white fill-white cursor-pointer active:scale-90 transition-transform" />
+                    <SkipBack onClick={(e) => { e.stopPropagation(); previous(); }} className="w-10 h-10 text-white cursor-pointer hover:text-blue-400 transition-colors" />
                     <button 
                       onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                      className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-black active:scale-95 transition-transform"
+                      className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.4)]"
                     >
                       {isPlaying ? <Pause className="w-10 h-10 fill-current" /> : <Play className="w-10 h-10 ml-1 fill-current" />}
                     </button>
-                    <SkipForward onClick={(e) => { e.stopPropagation(); next(); }} className="w-10 h-10 text-white fill-white cursor-pointer active:scale-90 transition-transform" />
+                    <SkipForward onClick={(e) => { e.stopPropagation(); next(); }} className="w-10 h-10 text-white cursor-pointer hover:text-blue-400 transition-colors" />
                   </div>
-                  <ListMusic className={`w-6 h-6 ${showQueue ? 'text-white' : 'text-gray-400'}`} onClick={() => setShowQueue(!showQueue)} />
+                  <ListMusic className={`w-6 h-6 cursor-pointer ${showQueue ? 'text-blue-500' : 'text-gray-400'}`} onClick={() => setShowQueue(!showQueue)} />
                 </div>
               </div>
             </div>
@@ -171,12 +176,12 @@ export const Player = () => {
 
       <div 
         onClick={() => !isFullScreen && setFullScreen(true)}
-        className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-xl border-t border-gray-800 text-white p-4 flex items-center justify-between z-[1000] cursor-pointer"
+        className="fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/80 backdrop-blur-3xl border-t border-white/10 text-white p-4 flex items-center justify-between z-[1000] cursor-pointer shadow-[0_-20px_40px_rgba(0,0,0,0.5)]"
       >
         <div className="flex items-center gap-4 w-1/3">
           <motion.div 
             layoutId="player-art-mini"
-            className="w-14 h-14 rounded-2xl overflow-hidden shadow-2xl relative group cursor-pointer"
+            className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(59,130,246,0.2)] relative group cursor-pointer"
             onClick={() => !isFullScreen && setFullScreen(true)}
           >
             <img src={currentSong.cover_url} alt={currentSong.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -186,25 +191,22 @@ export const Player = () => {
           </motion.div>
           <div className="truncate">
             <h4 className="font-black text-white text-sm uppercase italic tracking-tighter truncate">{currentSong.title}</h4>
-            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.15em] truncate">{currentSong.artist_name}</p>
+            <p className="text-blue-500 text-[10px] font-black uppercase tracking-[0.15em] truncate">{currentSong.artist_name}</p>
           </div>
         </div>
 
         <div className="hidden md:flex flex-col items-center gap-2 flex-1 max-w-xl" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-6">
-            <SkipBack onClick={previous} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-white transition-colors" />
+            <SkipBack onClick={previous} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-blue-400 transition-colors" />
             <button 
               onClick={togglePlay}
-              className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all active:scale-95 shadow-lg shadow-white/5"
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
             >
               {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
             </button>
-            <SkipForward onClick={next} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-white transition-colors" />
+            <SkipForward onClick={next} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-blue-400 transition-colors" />
           </div>
           <div className="w-full flex items-center gap-3">
-            <span className="text-[9px] font-black text-gray-600 w-8 text-right tracking-widest">
-              {Math.floor(currentTime / 60)}:{(Math.floor(currentTime % 60)).toString().padStart(2, '0')}
-            </span>
             <input 
               type="range" 
               min="0" 
@@ -214,9 +216,6 @@ export const Player = () => {
               onChange={handleSeek}
               className="flex-1 h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500 hover:h-1.5 transition-all"
             />
-            <span className="text-[9px] font-black text-gray-600 w-8 tracking-widest">
-              {Math.floor(duration / 60)}:{(Math.floor(duration % 60)).toString().padStart(2, '0')}
-            </span>
           </div>
         </div>
 
@@ -233,17 +232,13 @@ export const Player = () => {
           />
         </div>
 
-        {/* Audio Element handles Spotify previews and native songs */}
         <audio 
           ref={audioRef} 
-          src={currentSong.audio_url} 
+          src={audioSrc} 
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={onEnded}
         />
-        
-        {/* Note: Real YouTube playback requires the YouTube IFrame API which we could integrate here if needed. 
-            For now, we support the 'audio_url' property if available. */}
       </div>
     </>
   );
