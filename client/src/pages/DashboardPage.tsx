@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Music, 
   Sparkles, 
   Zap, 
   ArrowRight, 
@@ -11,7 +10,6 @@ import {
   Activity,
   Shield,
   Radio,
-  Share2,
   Lock,
   LayoutGrid,
   Map as MapIcon

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { 
-  AlertCircle, 
   Music,
   Video,
   Play,

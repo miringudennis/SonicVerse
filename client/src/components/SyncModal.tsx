@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Music, Video, Play, Shield, CheckCircle2, Loader2, ArrowRight, Zap } from 'lucide-react';
-import { useAuthStore, type LinkedAccount } from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 

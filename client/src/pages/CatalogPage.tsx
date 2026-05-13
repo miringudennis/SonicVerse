@@ -11,23 +11,21 @@ import {
   Layers, 
   Users,
   History,
-  AlertCircle,
   RefreshCcw,
   ShieldCheck,
   Video,
   ChevronRight,
-  Library,
+  Library, 
   Heart,
   Calendar,
-  Mic2,
-  Lock
+  Mic2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail' | 'playlist-detail';

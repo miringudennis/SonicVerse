@@ -4,7 +4,6 @@ import { Music, Compass, LayoutGrid, ArrowRight, Share2, Globe, Zap, Headphones 
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { WelcomeCanvas } from '../components/WelcomeCanvas';
-import { AppBackground } from '../components/AppBackground';
 import { Footer } from '../components/Footer';
 
 export const WelcomePage = () => {
