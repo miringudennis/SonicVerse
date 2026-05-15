@@ -67,8 +67,8 @@ export const Footer = () => {
           <div className="md:col-span-2">
             <h4 className="text-white font-black uppercase italic text-xs tracking-[0.3em] mb-10 border-b border-white/5 pb-4 inline-block">Legal</h4>
             <ul className="space-y-6 text-gray-500 font-black uppercase tracking-widest text-[10px]">
-              <li><a href="#" className="hover:text-white transition-colors flex items-center gap-3 hover:translate-x-1 transition-all"><Shield className="w-4 h-4 text-gray-700" /> Privacy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors flex items-center gap-3 hover:translate-x-1 transition-all"><Shield className="w-4 h-4 text-gray-700" /> Terms</a></li>
+              <li><Link to="/privacy" className="hover:text-white transition-colors flex items-center gap-3 hover:translate-x-1 transition-all"><Shield className="w-4 h-4 text-gray-700" /> Privacy</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors flex items-center gap-3 hover:translate-x-1 transition-all"><Shield className="w-4 h-4 text-gray-700" /> Terms</Link></li>
             </ul>
           </div>
         </div>

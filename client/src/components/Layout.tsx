@@ -59,8 +59,12 @@ const UserDropdown = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 p-1 pr-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all group backdrop-blur-md"
       >
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-black text-white uppercase shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-          {user.username?.[0] || user.email?.[0] || 'U'}
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-black text-white uppercase shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform overflow-hidden">
+          {user.avatar_url ? (
+            <img src={user.avatar_url} className="w-full h-full object-cover" alt={user.username} />
+          ) : (
+            user.username?.[0] || user.email?.[0] || 'U'
+          )}
         </div>
         <div className="hidden sm:block text-left">
           <p className="text-xs font-black text-white uppercase tracking-tighter">{user.username || 'Explorer'}</p>

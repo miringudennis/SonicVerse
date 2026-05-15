@@ -18,7 +18,9 @@ import {
   Library, 
   Heart,
   Calendar,
-  Mic2
+  Mic2,
+  Globe,
+  User as UserIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../store/playerStore';
@@ -26,27 +28,43 @@ import { useAuthStore } from '../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { PlanetaryCatalog } from '../components/PlanetaryCatalog';
 
 type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail' | 'playlist-detail';
+type PlanetType = 'artists' | 'tracks' | 'albums' | 'history' | 'playlists' | 'profile' | null;
 
-const PhoneSection = ({ title, icon: Icon, children, color }: any) => (
-  <div className="flex flex-col h-[650px] w-[320px] shrink-0 bg-[#0a0a0a] rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden relative group snap-center">
+const PhoneSection = ({ title, icon: Icon, children, color, onBack }: any) => (
+  <motion.div 
+    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+    className="flex flex-col h-[700px] w-full max-w-[500px] mx-auto bg-[#0a0a0a] rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden relative group"
+  >
     <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${color} opacity-50`} />
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="p-8 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-           <div className={`p-2 rounded-xl bg-white/5 border border-white/10`}>
-              <Icon className={`w-4 h-4 text-white`} />
+           <button 
+             onClick={onBack}
+             className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+           >
+              <ArrowLeft className="w-4 h-4 text-white" />
+           </button>
+           <div className="flex flex-col">
+             <div className="flex items-center gap-2">
+               <Icon className={`w-3 h-3 text-gray-500`} />
+               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.1em] italic">Archive Sector</h3>
+             </div>
+             <h4 className="text-sm font-black text-white uppercase tracking-[0.1em] italic">{title}</h4>
            </div>
-           <h3 className="text-xs font-black text-white uppercase tracking-[0.1em] italic">{title}</h3>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-6 pb-12 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-8 pb-12 custom-scrollbar">
         {children}
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
 export const CatalogPage = () => {
@@ -72,6 +90,7 @@ export const CatalogPage = () => {
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('medium_term');
   const [view, setView] = useState<ViewState>('welcome');
+  const [activePlanet, setActivePlanet] = useState<PlanetType>(null);
   const [activePlatform, setActivePlatform] = useState<'spotify' | 'youtube'>('spotify');
 
   const { setSong, setFullScreen } = usePlayerStore();
@@ -135,7 +154,7 @@ export const CatalogPage = () => {
     setSelectedArtist(artist);
     setArtistLoading(true);
     setDiscography(null);
-    if (view !== 'dashboard') setView('artist-detail');
+    setView('artist-detail');
     try {
       const token = localStorage.getItem(`${activePlatform}_token`);
       if (token) {
@@ -155,6 +174,7 @@ export const CatalogPage = () => {
     setSelectedAlbum(album);
     setAlbumLoading(true);
     setAlbumTracks(null);
+    setView('album-detail');
     try {
       const token = localStorage.getItem(`${activePlatform}_token`);
       if (token) {
@@ -174,6 +194,8 @@ export const CatalogPage = () => {
     setSelectedPlaylist(playlist);
     setPlaylistLoading(true);
     setPlaylistTracks(null);
+    // For now we don't have a separate playlist detail view, but we could add one.
+    // For simplicity, we'll just handle it within the dashboard/planet view if needed.
     try {
       const token = localStorage.getItem(`${activePlatform}_token`);
       if (token) {
@@ -234,12 +256,35 @@ export const CatalogPage = () => {
     }
     setActivePlatform(p.id as any);
     setView('dashboard');
+    setActivePlanet(null);
   };
 
   const topGenres = profile ? (topArtists?.[0]?.genres?.slice(0, 5) || []) : [];
 
+  const TimeFilter = () => (
+    <div className="flex gap-2 mb-8 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+      {[
+        { id: 'short_term', label: '4W' },
+        { id: 'medium_term', label: '6M' },
+        { id: 'long_term', label: 'ALL' }
+      ].map((range) => (
+        <button 
+          key={range.id}
+          onClick={() => setTimeRange(range.id as TimeRange)}
+          className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] transition-all border ${
+            timeRange === range.id 
+              ? 'bg-white border-white text-black shadow-lg'
+              : 'bg-transparent border-transparent text-gray-500 hover:text-white'
+          }`}
+        >
+          {range.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="max-w-7xl mx-auto pb-20">
+    <div className="max-w-7xl mx-auto pb-20 px-4">
       <AnimatePresence mode="wait">
         {view === 'welcome' ? (
           <motion.div 
@@ -301,228 +346,116 @@ export const CatalogPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-16"
+            className="space-y-8"
           >
-            <div className="relative">
+            <div className="flex items-center justify-between">
                 <button 
                   onClick={() => setView('welcome')}
-                  className="mb-10 flex items-center gap-3 text-gray-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] group"
+                  className="flex items-center gap-3 text-gray-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] group"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Archives
                 </button>
-
-                {profile && (
-                  <div className="flex flex-col lg:flex-row items-stretch gap-8">
-                    <div className="flex-1 flex flex-col md:flex-row items-center gap-12 bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-white/5 relative overflow-hidden group shadow-2xl">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${activePlatform === 'spotify' ? 'from-[#1DB954]/10 to-transparent' : 'from-[#FF0000]/10 to-transparent'} opacity-50`}></div>
-                      <div className="relative">
-                        <div className={`absolute -inset-2 bg-gradient-to-tr ${activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'} rounded-full blur-xl opacity-20`}></div>
-                        {profile.images?.[0]?.url || profile.avatar_url ? (
-                          <img src={profile.images?.[0]?.url || profile.avatar_url} className="relative w-40 h-40 rounded-full object-cover border-4 border-white/5 shadow-2xl" alt="" />
-                        ) : (
-                          <div className="relative w-40 h-40 rounded-full bg-white/5 border-4 border-white/5 flex items-center justify-center">
-                              <Users className="w-16 h-16 text-gray-700" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 text-center md:text-left z-10">
-                        <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
-                           <span className={`px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400`}>
-                             Archive: {activePlatform}
-                           </span>
-                        </div>
-                        <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter mb-4 leading-none">{profile.display_name || profile.username}</h1>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-8 mb-8">
-                            <div className="flex flex-col">
-                               <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1">Status</span>
-                               <span className="text-sm font-black text-white uppercase tracking-tighter">Verified Node</span>
-                            </div>
-                            <div className="flex flex-col">
-                               <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1">Followers</span>
-                               <span className="text-sm font-black text-white uppercase tracking-tighter">{profile.followers?.total || 0} Entities</span>
-                            </div>
-                        </div>
-                        <div className="space-y-4">
-                          <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Top Frequency Segments</p>
-                          <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                            {topGenres.length > 0 ? topGenres.map((genre: string) => (
-                              <span key={genre} className="text-[10px] font-black uppercase tracking-[0.1em] px-4 py-2 bg-white/5 text-white rounded-xl border border-white/5 hover:border-white/20 transition-all cursor-default">
-                                {genre}
-                              </span>
-                            )) : (
-                              <span className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-white/5 text-gray-700 rounded-xl">Capturing Data...</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-[#0a0a0a] p-8 rounded-[3.5rem] border border-white/5 flex flex-col justify-center gap-4 min-w-[200px]">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center mb-4">Temporal Range</p>
-                        <div className="flex flex-row lg:flex-col gap-3">
-                          {[
-                            { id: 'short_term', label: 'Short Term' },
-                            { id: 'medium_term', label: 'Medium Term' },
-                            { id: 'long_term', label: 'Long Term' }
-                          ].map((range) => (
-                            <button 
-                              key={range.id}
-                              onClick={() => setTimeRange(range.id as TimeRange)}
-                              className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
-                                timeRange === range.id 
-                                  ? 'bg-white border-white text-black shadow-xl shadow-white/5'
-                                  : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'
-                              }`}
-                            >
-                              {range.label}
-                            </button>
-                          ))}
-                        </div>
-                    </div>
-                  </div>
-                )}
+                
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                   <Globe className={`w-3 h-3 ${activePlatform === 'spotify' ? 'text-green-500' : 'text-red-500'}`} />
+                   <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{activePlatform} Orbital System</span>
+                </div>
             </div>
 
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-32 bg-[#0a0a0a] rounded-[3.5rem] border border-white/5">
-                <div className="w-16 h-16 rounded-full border-b-4 border-blue-500 animate-spin" />
-                <p className="mt-8 text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] animate-pulse">Synchronizing Neural Grid</p>
-              </div>
-            ) : profile && (
-              <div className="w-screen relative left-1/2 -ml-[50vw] overflow-x-auto flex gap-10 py-12 px-24 custom-scrollbar snap-x snap-mandatory">
-                <PhoneSection 
-                  title={selectedArtist && view === 'dashboard' ? selectedArtist.name : "Top Artists"} 
-                  icon={Users} 
-                  color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+            <AnimatePresence mode="wait">
+              {!activePlanet ? (
+                <motion.div
+                  key="planetary-system"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="relative"
                 >
-                  {artistLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                       <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                    </div>
-                  ) : selectedArtist && discography && view === 'dashboard' ? (
-                    <div className="space-y-6">
-                      <button 
-                        onClick={() => {
-                          setSelectedArtist(null);
-                          setDiscography(null);
-                        }}
-                        className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 hover:text-white transition-colors"
-                      >
-                        <ArrowLeft className="w-3 h-3" /> Back
-                      </button>
-                      
-                      <div className="flex flex-col items-center text-center mb-8">
-                        <img src={selectedArtist.images?.[0]?.url} className="w-28 h-28 rounded-full object-cover mb-4 shadow-2xl border-2 border-white/5" alt="" />
-                        <h4 className="text-xl font-black text-white italic uppercase tracking-tighter mb-1">{selectedArtist.name}</h4>
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">{selectedArtist.genres?.[0]}</p>
+                  <PlanetaryCatalog 
+                    profile={profile} 
+                    activePlatform={activePlatform}
+                    onPlanetSelect={(type) => setActivePlanet(type as PlanetType)} 
+                  />
+                  
+                  {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-[3rem] z-20">
+                      <div className="flex flex-col items-center">
+                        <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+                        <p className="text-[10px] font-black text-white uppercase tracking-[0.5em] animate-pulse">Syncing Neural Grid...</p>
                       </div>
-
-                      <div className="space-y-4">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 border-b border-white/5 pb-4">Top Signals</p>
-                        {discography.top_tracks?.slice(0, 5).map((track: any, i: number) => (
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <div className="flex items-center justify-center min-h-[600px]">
+                   {activePlanet === 'artists' && (
+                     <PhoneSection 
+                       title="Top Artists" 
+                       icon={Users} 
+                       color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+                       onBack={() => setActivePlanet(null)}
+                     >
+                       <TimeFilter />
+                       <div className="space-y-4">
+                        {topArtists.map((artist, i) => (
                           <div 
-                            key={track.id} 
-                            onClick={() => playSong(track, discography.top_tracks)}
+                            key={artist.id} 
+                            onClick={() => handleArtistClick(artist)}
                             className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
                           >
                             <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
+                            <img src={artist.images?.[2]?.url} className="w-12 h-12 rounded-full object-cover shadow-lg" alt="" />
                             <div className="flex-1 overflow-hidden">
-                              <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                              <p className="text-xs font-bold text-white truncate">{artist.name}</p>
+                              <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mt-0.5">{artist.genres?.[0] || 'Artist'}</p>
                             </div>
-                            <Play className="w-3 h-3 text-gray-700 group-hover:text-blue-500 transition-colors" />
+                            <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {topArtists.map((artist, i) => (
-                        <div 
-                          key={artist.id} 
-                          onClick={() => handleArtistClick(artist)}
-                          className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
-                        >
-                          <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
-                          <img src={artist.images?.[2]?.url} className="w-12 h-12 rounded-full object-cover shadow-lg" alt="" />
-                          <div className="flex-1 overflow-hidden">
-                            <p className="text-xs font-bold text-white truncate">{artist.name}</p>
-                            <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mt-0.5">{artist.genres?.[0] || 'Artist'}</p>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </PhoneSection>
+                     </PhoneSection>
+                   )}
 
-                <PhoneSection title="Top Tracks" icon={TrendingUp} color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}>
-                   <div className="space-y-4">
-                    {topTracks.map((track, i) => (
-                      <div 
-                        key={track.id} 
-                        onClick={() => playSong(track, topTracks)}
-                        className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
-                      >
-                        <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
-                           <img src={track.cover_url} className="w-full h-full object-cover" alt="" />
-                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Play className="w-5 h-5 text-white fill-current ml-0.5" />
-                           </div>
-                        </div>
-                        <div className="flex-1 overflow-hidden">
-                          <p className="text-xs font-bold text-white truncate">{track.title}</p>
-                          <p className="text-[9px] text-gray-600 uppercase font-black truncate tracking-widest mt-0.5">{track.artist_name}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </PhoneSection>
-
-                <PhoneSection 
-                    title={selectedAlbum && view === 'dashboard' ? selectedAlbum.title : "Saved Albums"} 
-                    icon={Disc} 
-                    color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
-                >
-                    {albumLoading ? (
-                      <div className="flex items-center justify-center py-20">
-                         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-                      </div>
-                    ) : selectedAlbum && albumTracks && view === 'dashboard' ? (
-                      <div className="space-y-6">
-                        <button 
-                          onClick={() => {
-                            setSelectedAlbum(null);
-                            setAlbumTracks(null);
-                          }}
-                          className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 hover:text-white transition-colors"
-                        >
-                          <ArrowLeft className="w-3 h-3" /> Back
-                        </button>
-                        
-                        <div className="flex flex-col items-center text-center mb-8">
-                           <img src={selectedAlbum.cover_url} className="w-32 h-32 rounded-[1.5rem] object-cover mb-4 shadow-2xl border-2 border-white/5" alt="" />
-                           <h4 className="text-xl font-black text-white italic uppercase tracking-tighter mb-1">{selectedAlbum.title}</h4>
-                           <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">{selectedAlbum.artist_name}</p>
-                        </div>
-
-                        <div className="space-y-4">
-                          {albumTracks.tracks?.map((track: any, i: number) => (
-                            <div 
-                              key={track.id} 
-                              onClick={() => playSong(track, albumTracks.tracks)}
-                              className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
-                            >
-                              <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
-                              <div className="flex-1 overflow-hidden">
-                                <p className="text-xs font-bold text-white truncate">{track.title}</p>
-                              </div>
-                              <Play className="w-3 h-3 text-gray-700 group-hover:text-blue-500 transition-colors" />
+                   {activePlanet === 'tracks' && (
+                     <PhoneSection 
+                       title="Top Tracks" 
+                       icon={TrendingUp} 
+                       color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+                       onBack={() => setActivePlanet(null)}
+                     >
+                       <TimeFilter />
+                       <div className="space-y-4">
+                        {topTracks.map((track, i) => (
+                          <div 
+                            key={track.id} 
+                            onClick={() => playSong(track, topTracks)}
+                            className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
+                          >
+                            <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
+                            <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
+                               <img src={track.cover_url} className="w-full h-full object-cover" alt="" />
+                               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play className="w-5 h-5 text-white fill-current ml-0.5" />
+                               </div>
                             </div>
-                          ))}
-                        </div>
+                            <div className="flex-1 overflow-hidden">
+                              <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                              <p className="text-[9px] text-gray-600 uppercase font-black truncate tracking-widest mt-0.5">{track.artist_name}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-4">
+                     </PhoneSection>
+                   )}
+
+                   {activePlanet === 'albums' && (
+                     <PhoneSection 
+                       title="Saved Albums" 
+                       icon={Disc} 
+                       color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+                       onBack={() => setActivePlanet(null)}
+                     >
+                       <div className="grid grid-cols-2 gap-4 mt-2">
                         {albums.map((album) => (
                           <div 
                             key={album.id} 
@@ -540,104 +473,179 @@ export const CatalogPage = () => {
                           </div>
                         ))}
                       </div>
-                    )}
-                </PhoneSection>
+                     </PhoneSection>
+                   )}
 
-                <PhoneSection title="Recent History" icon={History} color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}>
-                   <div className="space-y-4">
-                    {recentTracks.map((track, i) => (
-                      <div 
-                        key={`${track.id}-${i}`} 
-                        onClick={() => playSong(track, recentTracks)}
-                        className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
-                      >
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
-                           <img src={track.cover_url} className="w-full h-full object-cover" alt="" />
-                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Play className="w-5 h-5 text-white fill-current ml-0.5" />
-                           </div>
-                        </div>
-                        <div className="flex-1 overflow-hidden">
-                          <p className="text-xs font-bold text-white truncate">{track.title}</p>
-                          <p className="text-[9px] text-gray-600 uppercase font-black truncate tracking-widest mt-0.5">{track.artist_name}</p>
-                          <div className="flex items-center gap-2 mt-2 opacity-50">
-                             <Clock className="w-2 h-2 text-gray-500" />
-                             <span className="text-[8px] font-black uppercase text-gray-600 tracking-widest">
-                               {track.played_at ? new Date(track.played_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Capture Live'}
-                             </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </PhoneSection>
-
-                 <PhoneSection 
-                    title={selectedPlaylist && view === 'dashboard' ? selectedPlaylist.name : "Playlists"} 
-                    icon={Layers} 
-                    color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
-                 >
-                    {playlistLoading ? (
-                      <div className="flex items-center justify-center py-20">
-                         <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
-                      </div>
-                    ) : selectedPlaylist && playlistTracks && view === 'dashboard' ? (
-                      <div className="space-y-6">
-                        <button 
-                          onClick={() => {
-                            setSelectedPlaylist(null);
-                            setPlaylistTracks(null);
-                          }}
-                          className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 hover:text-white transition-colors"
-                        >
-                          <ArrowLeft className="w-3 h-3" /> Back
-                        </button>
-                        
-                        <div className="flex flex-col items-center text-center mb-8">
-                           <img src={selectedPlaylist.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-32 h-32 rounded-[1.5rem] object-cover mb-4 shadow-2xl border-2 border-white/5" alt="" />
-                           <h4 className="text-xl font-black text-white italic uppercase tracking-tighter mb-1">{selectedPlaylist.name}</h4>
-                           <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">{selectedPlaylist.track_count} Nodes</p>
-                        </div>
-
-                        <div className="space-y-4">
-                          {playlistTracks.tracks?.map((track: any, i: number) => (
-                            <div 
-                              key={track.id} 
-                              onClick={() => playSong(track, playlistTracks.tracks)}
-                              className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
-                            >
-                              <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
-                              <div className="flex-1 overflow-hidden">
-                                <p className="text-xs font-bold text-white truncate">{track.title}</p>
-                              </div>
-                              <Play className="w-3 h-3 text-gray-700 group-hover:text-blue-500 transition-colors" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {playlists.map((p) => (
+                   {activePlanet === 'history' && (
+                     <PhoneSection 
+                       title="Recent History" 
+                       icon={History} 
+                       color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+                       onBack={() => setActivePlanet(null)}
+                     >
+                       <div className="space-y-4 mt-2">
+                        {recentTracks.map((track, i) => (
                           <div 
-                            key={p.id} 
-                            onClick={() => handlePlaylistClick(p)}
-                            className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-xl"
+                            key={`${track.id}-${i}`} 
+                            onClick={() => playSong(track, recentTracks)}
+                            className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
                           >
-                            <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 shadow-lg border border-white/5">
-                               <img src={p.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-full h-full object-cover" alt="" />
+                            <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg">
+                               <img src={track.cover_url} className="w-full h-full object-cover" alt="" />
+                               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play className="w-5 h-5 text-white fill-current ml-0.5" />
+                               </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                              <p className="text-xs font-bold text-white truncate">{p.name}</p>
-                              <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mt-1">{p.track_count} Tracks</p>
+                              <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                              <p className="text-[9px] text-gray-600 uppercase font-black truncate tracking-widest mt-0.5">{track.artist_name}</p>
+                              <div className="flex items-center gap-2 mt-2 opacity-50">
+                                 <Clock className="w-2 h-2 text-gray-500" />
+                                 <span className="text-[8px] font-black uppercase text-gray-600 tracking-widest">
+                                   {track.played_at ? new Date(track.played_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Capture Live'}
+                                 </span>
+                              </div>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
                           </div>
                         ))}
                       </div>
-                    )}
-                 </PhoneSection>
-              </div>
-            )}
+                     </PhoneSection>
+                   )}
+
+                   {activePlanet === 'playlists' && (
+                     <PhoneSection 
+                       title="Playlists" 
+                       icon={Layers} 
+                       color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+                       onBack={() => setActivePlanet(null)}
+                     >
+                        {playlistLoading ? (
+                          <div className="flex items-center justify-center py-20">
+                             <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
+                          </div>
+                        ) : selectedPlaylist && playlistTracks ? (
+                          <div className="space-y-6">
+                            <button 
+                              onClick={() => {
+                                setSelectedPlaylist(null);
+                                setPlaylistTracks(null);
+                              }}
+                              className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 hover:text-white transition-colors"
+                            >
+                              <ArrowLeft className="w-3 h-3" /> Back
+                            </button>
+                            
+                            <div className="flex flex-col items-center text-center mb-8">
+                               <img src={selectedPlaylist.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-32 h-32 rounded-[1.5rem] object-cover mb-4 shadow-2xl border-2 border-white/5" alt="" />
+                               <h4 className="text-xl font-black text-white italic uppercase tracking-tighter mb-1">{selectedPlaylist.name}</h4>
+                               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">{selectedPlaylist.track_count} Nodes</p>
+                            </div>
+
+                            <div className="space-y-4">
+                              {playlistTracks.tracks?.map((track: any, i: number) => (
+                                <div 
+                                  key={track.id} 
+                                  onClick={() => playSong(track, playlistTracks.tracks)}
+                                  className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
+                                >
+                                  <span className="text-[10px] font-black text-gray-700 w-4 group-hover:text-white transition-colors">{i + 1}</span>
+                                  <div className="flex-1 overflow-hidden">
+                                    <p className="text-xs font-bold text-white truncate">{track.title}</p>
+                                  </div>
+                                  <Play className="w-3 h-3 text-gray-700 group-hover:text-blue-500 transition-colors" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {playlists.map((p) => (
+                              <div 
+                                key={p.id} 
+                                onClick={() => handlePlaylistClick(p)}
+                                className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-xl"
+                              >
+                                <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 shadow-lg border border-white/5">
+                                   <img src={p.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop'} className="w-full h-full object-cover" alt="" />
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                  <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                                  <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mt-1">{p.track_count} Tracks</p>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                     </PhoneSection>
+                   )}
+
+                   {activePlanet === 'profile' && profile && (
+                     <PhoneSection 
+                       title="Archive Node" 
+                       icon={UserIcon} 
+                       color={activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'}
+                       onBack={() => setActivePlanet(null)}
+                     >
+                        <div className="flex flex-col items-center text-center space-y-8 mt-4">
+                           <div className="relative">
+                              <div className={`absolute -inset-4 bg-gradient-to-tr ${activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'} rounded-full blur-2xl opacity-20 animate-pulse`}></div>
+                              {profile.images?.[0]?.url || profile.avatar_url ? (
+                                <img src={profile.images?.[0]?.url || profile.avatar_url} className="relative w-32 h-32 rounded-full object-cover border-4 border-white/10 shadow-2xl" alt="" />
+                              ) : (
+                                <div className="relative w-32 h-32 rounded-full bg-white/5 border-4 border-white/10 flex items-center justify-center">
+                                    <UserIcon className="w-12 h-12 text-gray-700" />
+                                </div>
+                              )}
+                           </div>
+                           
+                           <div className="space-y-2">
+                              <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none">{profile.display_name || profile.username}</h1>
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Verified {activePlatform} Node</p>
+                           </div>
+
+                           <div className="grid grid-cols-2 gap-4 w-full">
+                              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
+                                 <span className="block text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Followers</span>
+                                 <span className="text-sm font-black text-white">{profile.followers?.total || 0}</span>
+                              </div>
+                              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
+                                 <span className="block text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Status</span>
+                                 <span className="text-sm font-black text-blue-400 uppercase italic">Active</span>
+                              </div>
+                           </div>
+
+                           <div className="w-full space-y-4 text-left">
+                              <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] px-2">High Resonance Genres</p>
+                              <div className="flex flex-wrap gap-2">
+                                {topGenres.map((genre: string) => (
+                                  <span key={genre} className="text-[9px] font-black uppercase tracking-[0.1em] px-3 py-1.5 bg-white/5 text-white rounded-lg border border-white/5">
+                                    {genre}
+                                  </span>
+                                ))}
+                              </div>
+                           </div>
+
+                           <div className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                 <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10`}>
+                                    <ShieldCheck className="w-4 h-4 text-blue-400" />
+                                 </div>
+                                 <div className="text-left">
+                                    <p className="text-[9px] font-black text-white uppercase tracking-tighter">Auth Protocol</p>
+                                    <p className="text-[8px] text-gray-600 font-black uppercase tracking-widest">Secured via OAuth 2.0</p>
+                                 </div>
+                              </div>
+                              <div className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/20 text-[8px] font-black text-green-500 uppercase tracking-widest">
+                                Valid
+                              </div>
+                           </div>
+                        </div>
+                     </PhoneSection>
+                   )}
+                </div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : view === 'artist-detail' ? (
           <motion.div 

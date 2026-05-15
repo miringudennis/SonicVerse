@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 export const SettingsPage = () => {
   const user = useAuthStore((state) => state.user);
   const linkedAccounts = useAuthStore((state) => state.linkedAccounts) as LinkedAccount[];
-  const { unlinkAccount, logout } = useAuthStore();
+  const { unlinkAccount, logout, setUser } = useAuthStore();
   const openSyncModal = useUIStore((state) => state.openSyncModal);
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +50,13 @@ export const SettingsPage = () => {
         });
         
         if (res.data.success) {
+          if (user) {
+            setUser({
+              ...user,
+              username: formData.username,
+              avatar_url: formData.avatar_url
+            });
+          }
           toast.success('Identity configuration synchronized.');
         }
       }
@@ -88,7 +95,15 @@ export const SettingsPage = () => {
 
       setFormData({ ...formData, avatar_url: publicUrl });
       
-      await api.put('/auth/update-profile', { avatar_url: publicUrl });
+      const res = await api.put('/auth/update-profile', { avatar_url: publicUrl });
+      
+      if (res.data.success && user) {
+        setUser({
+          ...user,
+          avatar_url: publicUrl
+        });
+      }
+      
       toast.success('Visual identifier established.');
     } catch (err: any) {
       toast.error('Neural image upload failed.');

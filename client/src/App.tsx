@@ -11,6 +11,8 @@ import { SocialFeedPage } from './pages/SocialFeedPage';
 import { CatalogPage } from './pages/CatalogPage';
 import { WelcomePage } from './pages/WelcomePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 import { MapPage } from './pages/MapPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -48,6 +50,8 @@ export default function App() {
         <Route path="sync/:platform" element={<SyncPage />} />
         <Route path="callback/spotify" element={<SpotifyCallbackPage />} />
         <Route path="callback/youtube" element={<YoutubeCallbackPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
 
         {/* Protected Application Routes */}
         <Route element={<ProtectedRoute />}>

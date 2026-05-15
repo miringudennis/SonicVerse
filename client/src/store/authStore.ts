@@ -5,6 +5,7 @@ interface User {
   email: string;
   username: string;
   role: string;
+  avatar_url?: string;
 }
 
 export interface LinkedAccount {
@@ -18,6 +19,7 @@ interface AuthState {
   token: string | null;
   linkedAccounts: LinkedAccount[];
   setAuth: (user: User, token: string) => void;
+  setUser: (user: User) => void;
   linkAccount: (account: LinkedAccount) => void;
   unlinkAccount: (platform: string) => void;
   logout: () => void;
@@ -51,6 +53,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('token', token);
     set({ user, token });
+  },
+  setUser: (user) => {
+    localStorage.setItem('user', JSON.stringify(user));
+    set({ user });
   },
   linkAccount: (account) => set((state) => {
     const next = [...state.linkedAccounts.filter(a => a.platform !== account.platform), account];
