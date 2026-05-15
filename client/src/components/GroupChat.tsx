@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, Shield, Info, X, Image, Video, FileText, Trash2, Edit2, UserMinus, ExternalLink, Plus, Reply, Check, Camera, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -153,7 +153,9 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
       console.error(err);
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (type === 'image' && imageInputRef.current) imageInputRef.current.value = '';
+      if (type === 'video' && videoInputRef.current) videoInputRef.current.value = '';
+      if (type === 'document' && docInputRef.current) docInputRef.current.value = '';
     }
   };
 
@@ -164,17 +166,6 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
       toast.success('Message erased');
     } catch (err) {
       toast.error('Erasure failed');
-    }
-  };
-
-  const handleRename = async () => {
-    try {
-      const res = await api.put('/groups/rename', { groupId: group.id, name: newName });
-      setGroup({ ...group, name: res.data.name });
-      setIsEditingName(false);
-      toast.success('Cluster renamed');
-    } catch (err) {
-      toast.error('Rename failed');
     }
   };
 
@@ -620,9 +611,3 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
     </div>
   );
 };
-
-const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
