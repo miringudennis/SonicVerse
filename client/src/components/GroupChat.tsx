@@ -196,7 +196,6 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
       await api.post('/groups/invite', { groupId: group.id, username: inviteQuery });
       toast.success(`Invite dispatched to @${inviteQuery}`);
       setInviteQuery('');
-      setShowInvite(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Invite protocol failed');
     }
