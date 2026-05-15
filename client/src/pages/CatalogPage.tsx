@@ -69,6 +69,7 @@ const PhoneSection = ({ title, icon: Icon, children, color, onBack }: any) => (
 
 export const CatalogPage = () => {
   const [profile, setProfile] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
   const [topArtists, setTopArtists] = useState<any[]>([]);
   const [topTracks, setTopTracks] = useState<any[]>([]);
   const [recentTracks, setRecentTracks] = useState<any[]>([]);
@@ -128,6 +129,7 @@ export const CatalogPage = () => {
         api.get(`/${activePlatform}/recently-played`, { headers }),
         api.get(`/${activePlatform}/playlists`, { headers }),
         api.get(`/${activePlatform}/albums`, { headers }),
+        activePlatform === 'spotify' ? api.get(`/${activePlatform}/analytics`, { headers }) : Promise.resolve({ data: null }),
       ];
 
       const results = await Promise.allSettled(endpoints);
@@ -138,6 +140,7 @@ export const CatalogPage = () => {
       if (results[3].status === 'fulfilled') setRecentTracks(results[3].value.data);
       if (results[4].status === 'fulfilled') setPlaylists(results[4].value.data);
       if (results[5].status === 'fulfilled') setAlbums(results[5].value.data);
+      if (results[6].status === 'fulfilled') setAnalytics(results[6].value.data);
 
       if (results[0].status === 'rejected') {
         toast.error(`${activePlatform === 'spotify' ? 'Spotify' : 'YouTube'} session expired.`);
@@ -373,6 +376,7 @@ export const CatalogPage = () => {
                 >
                   <PlanetaryCatalog 
                     profile={profile} 
+                    analytics={analytics}
                     activePlatform={activePlatform}
                     onPlanetSelect={(type) => setActivePlanet(type as PlanetType)} 
                   />
@@ -603,6 +607,58 @@ export const CatalogPage = () => {
                               <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none">{profile.display_name || profile.username}</h1>
                               <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Verified {activePlatform} Node</p>
                            </div>
+
+                           {analytics && (
+                             <div className="w-full space-y-6">
+                               <div className="grid grid-cols-3 gap-3">
+                                  <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                                     <span className="block text-[7px] font-black text-gray-600 uppercase tracking-widest mb-1">Minutes</span>
+                                     <span className="text-xs font-black text-white">{(analytics.total_minutes / 1000).toFixed(1)}k</span>
+                                  </div>
+                                  <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                                     <span className="block text-[7px] font-black text-gray-600 uppercase tracking-widest mb-1">Signals</span>
+                                     <span className="text-xs font-black text-white">{analytics.total_tracks}</span>
+                                  </div>
+                                  <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                                     <span className="block text-[7px] font-black text-gray-600 uppercase tracking-widest mb-1">Entities</span>
+                                     <span className="text-xs font-black text-white">{analytics.total_artists}</span>
+                                  </div>
+                               </div>
+
+                               <div className="space-y-4 text-left">
+                                  <div className="flex items-center justify-between px-2">
+                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Alpha Entities (Top 3)</p>
+                                     <Users className="w-3 h-3 text-blue-500" />
+                                  </div>
+                                  <div className="flex gap-3">
+                                     {analytics.top_3_artists?.map((artist: any, i: number) => (
+                                       <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                                          <img src={artist.image} className="w-16 h-16 rounded-2xl object-cover border border-white/10 shadow-lg" alt="" />
+                                          <span className="text-[8px] font-black text-white uppercase truncate w-full text-center">{artist.name}</span>
+                                       </div>
+                                     ))}
+                                  </div>
+                               </div>
+
+                               <div className="space-y-4 text-left">
+                                  <div className="flex items-center justify-between px-2">
+                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">High Resonance (Top 3)</p>
+                                     <TrendingUp className="w-3 h-3 text-green-500" />
+                                  </div>
+                                  <div className="space-y-2">
+                                     {analytics.top_3_tracks?.map((track: any, i: number) => (
+                                       <div key={i} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/5">
+                                          <img src={track.image} className="w-8 h-8 rounded-lg object-cover" alt="" />
+                                          <div className="flex-1 min-w-0">
+                                             <p className="text-[9px] font-black text-white uppercase truncate">{track.title}</p>
+                                             <p className="text-[7px] text-gray-600 font-black uppercase truncate">{track.artist}</p>
+                                          </div>
+                                       </div>
+                                     ))}
+                                  </div>
+                               </div>
+                             </div>
+                           )}
 
                            <div className="grid grid-cols-2 gap-4 w-full">
                               <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">

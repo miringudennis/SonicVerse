@@ -16,5 +16,6 @@ router.get('/album/:albumId/tracks', authMiddleware, spotifyController.getAlbumT
 router.get('/neural-insights', authMiddleware, spotifyController.getRecommendations);
 router.get('/artist/:artistId/discography', authMiddleware, spotifyController.getArtistDiscography);
 router.get('/top-artists-locations', authMiddleware, spotifyController.getTopArtistsLocations);
+router.get('/analytics', authMiddleware, spotifyController.getAnalytics);
 
 module.exports = router;
