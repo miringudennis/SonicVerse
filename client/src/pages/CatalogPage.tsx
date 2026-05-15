@@ -32,7 +32,7 @@ import { PlanetaryCatalog } from '../components/PlanetaryCatalog';
 
 type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 type ViewState = 'welcome' | 'dashboard' | 'artist-detail' | 'album-detail' | 'playlist-detail';
-type PlanetType = 'artists' | 'tracks' | 'albums' | 'history' | 'playlists' | 'profile' | null;
+type PlanetType = 'artists' | 'tracks' | 'albums' | 'history' | 'playlists' | 'profile' | 'genres' | null;
 
 const PhoneSection = ({ title, icon: Icon, children, color, onBack }: any) => (
   <motion.div 
@@ -75,6 +75,10 @@ export const CatalogPage = () => {
   const [recentTracks, setRecentTracks] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [albums, setAlbums] = useState<any[]>([]);
+  
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [genreDetails, setGenreDetails] = useState<any>(null);
+  const [genreLoading, setGenreLoading] = useState(false);
   
   const [selectedArtist, setSelectedArtist] = useState<any>(null);
   const [discography, setDiscography] = useState<any>(null);
@@ -124,11 +128,11 @@ export const CatalogPage = () => {
     try {
       const endpoints = [
         api.get(`/${activePlatform}/profile`, { headers }),
-        api.get(`/${activePlatform}/top-artists?time_range=${timeRange}`, { headers }),
-        api.get(`/${activePlatform}/top-tracks?time_range=${timeRange}`, { headers }),
-        api.get(`/${activePlatform}/recently-played`, { headers }),
-        api.get(`/${activePlatform}/playlists`, { headers }),
-        api.get(`/${activePlatform}/albums`, { headers }),
+        api.get(`/${activePlatform}/top-artists?time_range=${timeRange}&limit=50`, { headers }),
+        api.get(`/${activePlatform}/top-tracks?time_range=${timeRange}&limit=50`, { headers }),
+        api.get(`/${activePlatform}/recently-played?limit=50`, { headers }),
+        api.get(`/${activePlatform}/playlists?limit=50`, { headers }),
+        api.get(`/${activePlatform}/albums?limit=50`, { headers }),
         activePlatform === 'spotify' ? api.get(`/${activePlatform}/analytics`, { headers }) : Promise.resolve({ data: null }),
       ];
 
@@ -217,6 +221,25 @@ export const CatalogPage = () => {
   const playSong = (track: any, list: any[]) => {
     setSong(track, list);
     setFullScreen(true);
+  };
+
+  const handleGenreClick = async (genre: string) => {
+    setSelectedGenre(genre);
+    setGenreLoading(true);
+    setGenreDetails(null);
+    try {
+      const token = localStorage.getItem(`${activePlatform}_token`);
+      if (token) {
+        const res = await api.get(`/${activePlatform}/genre/${genre}`, {
+          headers: { [`x-${activePlatform}-token`]: token }
+        });
+        setGenreDetails(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch genre details', err);
+    } finally {
+      setGenreLoading(false);
+    }
   };
 
   const platforms = [
@@ -513,6 +536,78 @@ export const CatalogPage = () => {
                           </div>
                         ))}
                       </div>
+                     </PhoneSection>
+                   )}
+
+                   {activePlanet === 'genres' && (
+                     <PhoneSection 
+                       title="Neural Genres" 
+                       icon={Globe} 
+                       color="from-yellow-400 to-amber-600"
+                       onBack={() => setActivePlanet(null)}
+                     >
+                        {genreLoading ? (
+                          <div className="flex items-center justify-center py-20">
+                             <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+                          </div>
+                        ) : selectedGenre && genreDetails ? (
+                          <div className="space-y-8">
+                            <button 
+                              onClick={() => {
+                                setSelectedGenre(null);
+                                setGenreDetails(null);
+                              }}
+                              className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 hover:text-white transition-colors"
+                            >
+                              <ArrowLeft className="w-3 h-3" /> Back
+                            </button>
+
+                            <div className="text-center mb-8">
+                               <h4 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-1">{selectedGenre}</h4>
+                               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Resonance Pattern Found</p>
+                            </div>
+
+                            <section className="space-y-4">
+                               <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] px-2">High Frequency Entities</p>
+                               <div className="flex flex-wrap gap-2">
+                                 {genreDetails.artists?.map((artist: any) => (
+                                   <div key={artist.id} onClick={() => handleArtistClick(artist)} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 hover:border-white/20 transition-all cursor-pointer">
+                                      <img src={artist.images?.[2]?.url} className="w-6 h-6 rounded-full" alt="" />
+                                      <span className="text-[9px] font-black text-white uppercase">{artist.name}</span>
+                                   </div>
+                                 ))}
+                               </div>
+                            </section>
+
+                            <section className="space-y-4">
+                               <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] px-2">Resonating Signals</p>
+                               <div className="space-y-2">
+                                 {genreDetails.tracks?.map((track: any) => (
+                                   <div key={track.id} onClick={() => playSong(track, genreDetails.tracks)} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group">
+                                      <img src={track.cover_url} className="w-8 h-8 rounded-lg" alt="" />
+                                      <div className="flex-1 min-w-0">
+                                         <p className="text-[10px] font-black text-white uppercase truncate">{track.title}</p>
+                                         <p className="text-[8px] text-gray-600 font-black uppercase truncate">{track.artist_name}</p>
+                                      </div>
+                                      <Play className="w-3 h-3 text-gray-700 group-hover:text-blue-500 transition-colors" />
+                                   </div>
+                                 ))}
+                               </div>
+                            </section>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-3 pt-4">
+                            {topGenres.map((genre: string) => (
+                              <button 
+                                key={genre}
+                                onClick={() => handleGenreClick(genre)}
+                                className="px-6 py-3 rounded-2xl bg-white/5 border border-white/5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all shadow-xl"
+                              >
+                                {genre}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                      </PhoneSection>
                    )}
 

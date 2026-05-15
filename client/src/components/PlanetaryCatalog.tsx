@@ -8,7 +8,8 @@ import {
   Disc, 
   History, 
   Layers, 
-  User
+  User,
+  Globe
 } from 'lucide-react';
 
 interface PlanetProps {
@@ -74,6 +75,15 @@ const Planet = ({ position, color, label, icon: Icon, onClick, scale = 1, type }
             transparent
           />
         );
+      case 'genres':
+        return (
+          <meshStandardMaterial 
+            color={color} 
+            emissive={color} 
+            emissiveIntensity={0.6}
+            wireframe
+          />
+        );
       default:
         return <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />;
     }
@@ -121,17 +131,18 @@ export const PlanetaryCatalog = ({ onPlanetSelect, profile, analytics, activePla
   const platformColor = activePlatform === 'spotify' ? '#1DB954' : '#FF0000';
 
   const planets = useMemo(() => [
-    { type: 'artists', label: 'Top Artists', icon: Users, color: '#4f46e5', position: [-5, 2.5, 0] as [number, number, number] },
-    { type: 'tracks', label: 'Top Tracks', icon: TrendingUp, color: '#10b981', position: [5, 2.5, 0] as [number, number, number] },
-    { type: 'albums', label: 'Saved Albums', icon: Disc, color: '#8b5cf6', position: [-6, -2, 2] as [number, number, number] },
-    { type: 'history', label: 'Recent History', icon: History, color: '#f59e0b', position: [6, -2, 2] as [number, number, number] },
-    { type: 'playlists', label: 'Playlists', icon: Layers, color: '#ec4899', position: [0, -4.5, 4] as [number, number, number] },
+    { type: 'artists', label: 'Top Artists', icon: Users, color: '#4f46e5', position: [-8, 4, 0] as [number, number, number] },
+    { type: 'tracks', label: 'Top Tracks', icon: TrendingUp, color: '#10b981', position: [8, 4, 0] as [number, number, number] },
+    { type: 'genres', label: 'Neural Genres', icon: Globe, color: '#facc15', position: [0, 8, -4] as [number, number, number] },
+    { type: 'albums', label: 'Saved Albums', icon: Disc, color: '#8b5cf6', position: [-9, -4, 2] as [number, number, number] },
+    { type: 'history', label: 'Recent History', icon: History, color: '#f59e0b', position: [9, -4, 2] as [number, number, number] },
+    { type: 'playlists', label: 'Playlists', icon: Layers, color: '#ec4899', position: [0, -8, 4] as [number, number, number] },
   ], []);
 
   return (
-    <div className="w-full h-[700px] relative bg-black/20 rounded-[4rem] border border-white/5 overflow-hidden">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 15], fov: 45 }}>
-        <PerspectiveCamera makeDefault position={[0, 0, 15]} />
+    <div className="w-full h-[850px] relative bg-black/20 rounded-[4.5rem] border border-white/5 overflow-hidden">
+      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 20], fov: 45 }}>
+        <PerspectiveCamera makeDefault position={[0, 0, 20]} />
         <OrbitControls 
           enableZoom={false} 
           enablePan={false}
@@ -141,17 +152,17 @@ export const PlanetaryCatalog = ({ onPlanetSelect, profile, analytics, activePla
           minPolarAngle={Math.PI / 3}
         />
         
-        <Stars radius={100} depth={50} count={7000} factor={4} saturation={0} fade speed={1} />
+        <Stars radius={100} depth={50} count={8000} factor={4} saturation={0} fade speed={1} />
         
         <ambientLight intensity={0.4} />
         <pointLight position={[10, 10, 10]} intensity={2} color={platformColor} />
         <pointLight position={[-10, -10, -10]} intensity={1} color="#4f46e5" />
-        <spotLight position={[0, 10, 0]} intensity={1} angle={0.3} penumbra={1} castShadow />
+        <spotLight position={[0, 15, 0]} intensity={1.5} angle={0.3} penumbra={1} castShadow />
 
         {/* Central Platform Sun/Node */}
         <group position={[0, 0, 0]}>
            <Float speed={1.5} rotationIntensity={1} floatIntensity={1}>
-              <Sphere args={[2, 64, 64]} onClick={() => onPlanetSelect('profile')}>
+              <Sphere args={[2.5, 64, 64]} onClick={() => onPlanetSelect('profile')}>
                 <meshStandardMaterial 
                   color={platformColor} 
                   emissive={platformColor}
@@ -162,42 +173,42 @@ export const PlanetaryCatalog = ({ onPlanetSelect, profile, analytics, activePla
                 />
               </Sphere>
               
-              <Html distanceFactor={12} position={[0, 0, 0]} center>
+              <Html distanceFactor={14} position={[0, 0, 0]} center>
                 <div 
                   className="flex flex-col items-center gap-4 cursor-pointer group"
                   onClick={() => onPlanetSelect('profile')}
                 >
                    <div className="relative">
-                      <div className={`absolute -inset-4 bg-gradient-to-tr ${activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'} rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700 animate-pulse`} />
+                      <div className={`absolute -inset-6 bg-gradient-to-tr ${activePlatform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : 'from-[#FF0000] to-[#282828]'} rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-700 animate-pulse`} />
                       {profile?.images?.[0]?.url || profile?.avatar_url ? (
                         <img 
                           src={profile.images?.[0]?.url || profile.avatar_url} 
-                          className="w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-500 relative z-10" 
+                          className="w-28 h-28 rounded-full border-4 border-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-500 relative z-10" 
                           alt="" 
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 relative z-10">
-                           <User className="w-10 h-10 text-white" />
+                        <div className="w-28 h-28 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 relative z-10">
+                           <User className="w-12 h-12 text-white" />
                         </div>
                       )}
                    </div>
                    
                    <div className="flex flex-col items-center relative z-10">
-                      <span className="text-sm font-black text-white uppercase tracking-[0.3em] mb-1 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                      <span className="text-base font-black text-white uppercase tracking-[0.3em] mb-1 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                         {profile?.display_name || profile?.username || 'Archive Node'}
                       </span>
                       {analytics && (
-                         <div className="flex gap-2 mb-2">
-                            <span className="text-[7px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                         <div className="flex gap-3 mb-2">
+                            <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-md border border-blue-500/20">
                                {(analytics.total_minutes / 1000).toFixed(1)}K MIN
                             </span>
-                            <span className="text-[7px] font-black text-purple-400 uppercase tracking-widest bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">
+                            <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest bg-purple-500/10 px-3 py-1 rounded-md border border-purple-500/20">
                                {analytics.total_tracks} NODES
                             </span>
                          </div>
                       )}
-                      <div className="px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
-                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-[0.2em]">Profile Core</span>
+                      <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.2em]">Profile Core</span>
                       </div>
                    </div>
                 </div>
@@ -214,7 +225,7 @@ export const PlanetaryCatalog = ({ onPlanetSelect, profile, analytics, activePla
             label={p.label}
             icon={p.icon}
             onClick={() => onPlanetSelect(p.type)}
-            scale={0.9}
+            scale={1.1}
           />
         ))}
 
@@ -228,19 +239,19 @@ export const PlanetaryCatalog = ({ onPlanetSelect, profile, analytics, activePla
       </Canvas>
       
       <div className="absolute top-10 left-10 z-10">
-        <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
-          <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${activePlatform === 'spotify' ? 'bg-[#1DB954] shadow-[0_0_10px_#1DB954]' : 'bg-[#FF0000] shadow-[0_0_10px_#FF0000]'}`} />
+        <div className="flex items-center gap-4 px-6 py-4 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+          <div className={`w-3 h-3 rounded-full animate-pulse ${activePlatform === 'spotify' ? 'bg-[#1DB954] shadow-[0_0_15px_#1DB954]' : 'bg-[#FF0000] shadow-[0_0_15px_#FF0000]'}`} />
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Orbital Analytics Active</span>
-            <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest">Neural Pathway Synchronized</span>
+            <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Orbital Analytics Active</span>
+            <span className="text-[9px] text-gray-500 font-black uppercase tracking-widest">Neural Pathway Synchronized</span>
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-10 right-10 z-10 text-right">
-        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2">Navigation Command</p>
-        <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md inline-block">
-          <p className="text-[9px] font-black text-white uppercase italic tracking-tighter">Drag to Rotate • Click Planets to Visit • Hover for Identity</p>
+      <div className="absolute bottom-12 right-12 z-10 text-right">
+        <p className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-3">Navigation Command</p>
+        <div className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md inline-block shadow-2xl">
+          <p className="text-[10px] font-black text-white uppercase italic tracking-tighter">Drag to Rotate • Click Planets to Visit • Hover for Identity</p>
         </div>
       </div>
     </div>

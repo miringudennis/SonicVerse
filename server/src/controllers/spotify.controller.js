@@ -455,3 +455,41 @@ exports.getAnalytics = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch neural analytics' });
   }
 };
+
+exports.getGenreDetails = async (req, res) => {
+  const accessToken = req.headers['x-spotify-token'];
+  const { genre } = req.params;
+  if (!accessToken) return res.status(401).json({ message: 'No Spotify token provided' });
+
+  try {
+    // We use recommendations to get tracks for a genre
+    const tracksRes = await axios.get(`https://api.spotify.com/v1/recommendations?limit=20&seed_genres=${encodeURIComponent(genre)}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    // We search for artists with this genre
+    const artistsRes = await axios.get(`https://api.spotify.com/v1/search?q=genre:%22${encodeURIComponent(genre)}%22&type=artist&limit=20`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    res.json({
+      genre,
+      tracks: tracksRes.data.tracks.map(t => ({
+        id: t.id,
+        title: t.name,
+        artist_name: t.artists[0].name,
+        cover_url: t.album.images[0]?.url,
+        audio_url: t.preview_url
+      })),
+      artists: artistsRes.data.artists.items.map(a => ({
+        id: a.id,
+        name: a.name,
+        images: a.images,
+        genres: a.genres
+      }))
+    });
+  } catch (error) {
+    console.error('Spotify Genre Details Error:', error.response?.data || error.message);
+    res.status(500).json({ message: 'Failed to fetch genre details' });
+  }
+};

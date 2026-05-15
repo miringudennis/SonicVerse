@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Music,
-  Video,
-  Play,
-  Sparkles,
   Zap,
   Globe
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { usePlayerStore } from '../store/playerStore';
 import { useUIStore } from '../store/uiStore';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { DiscoveryUniverse } from '../components/DiscoveryUniverse';
+
+type DiscoveryView = 'universe' | 'galaxy' | 'system';
 
 export const DiscoveryPage = () => {
   const [loading, setLoading] = useState(false);
@@ -21,6 +20,10 @@ export const DiscoveryPage = () => {
     youtube: [], 
     apple: [] 
   });
+  
+  const [view, setView] = useState<DiscoveryView>('universe');
+  const [activeGalaxy, setActiveGalaxy] = useState<string | null>(null);
+  const [activeSystem, setActiveSystem] = useState<string | null>(null);
 
   const linkedAccounts = useAuthStore(state => state.linkedAccounts);
   const setSong = usePlayerStore(state => state.setSong);
@@ -77,144 +80,100 @@ export const DiscoveryPage = () => {
     }
   };
 
-  const renderSection = (title: string, platform: 'spotify' | 'youtube' | 'apple', data: any[]) => {
-    const Icon = platform === 'spotify' ? Music : platform === 'youtube' ? Video : Play;
-    const gradientClass = platform === 'spotify' ? 'from-[#1DB954] to-[#191414]' : platform === 'youtube' ? 'from-[#FF0000] to-[#282828]' : 'from-[#fa243c] to-[#1a1a1a]';
-    const accentColor = platform === 'spotify' ? 'text-[#1DB954]' : platform === 'youtube' ? 'text-[#FF0000]' : 'text-[#fa243c]';
+  const systems = useMemo(() => {
+    if (!activeGalaxy) return [];
+    // Extract unique genres or just mock them for now based on artists if we had genre data per track
+    return ['Electronic', 'Neural Pop', 'Deep Bass', 'Ambient', 'High Resonance'].slice(0, 5);
+  }, [activeGalaxy]);
 
-    return (
-      <motion.section 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="mb-24"
-      >
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter flex items-center gap-4">
-            <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 ${accentColor}`}>
-              <Icon className="w-8 h-8" />
-            </div>
-            {title} Insights
-          </h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent mx-8 hidden md:block" />
-          <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{data.length} Nodes Identified</span>
-        </div>
-        
-        {data.length === 0 ? (
-          <div className="bg-[#0a0a0a] p-12 rounded-[2.5rem] border border-white/5 border-dashed flex flex-col items-center text-center">
-            <p className="text-gray-600 text-xs font-black uppercase tracking-[0.2em]">No neural data captured for {title}.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">
-            {data.map((item, idx) => (
-              <motion.div 
-                key={item.id} 
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.03 }}
-                className="group relative bg-[#0a0a0a] p-3 rounded-[1.5rem] border border-white/5 hover:border-white/20 transition-all shadow-lg"
-              >
-                <div className="relative aspect-square rounded-[1rem] overflow-hidden mb-4 shadow-xl">
-                  <img src={item.cover_url} className="w-full h-full object-cover group-hover:scale-110 transition duration-1000" alt={item.title} />
-                  <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
-                  <button 
-                    onClick={() => setSong(item, data)}
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-xl">
-                      <Play className="w-6 h-6 fill-current ml-0.5" />
-                    </div>
-                  </button>
-                </div>
-                <div className="px-1">
-                  <h4 className="font-black text-white text-xs truncate uppercase italic tracking-tighter mb-0.5">{item.title}</h4>
-                  <p className="text-[8px] text-gray-500 font-black uppercase tracking-[0.2em] truncate">{item.artist_name}</p>
-                </div>
-                
-                <div className="absolute top-3 right-3">
-                   <div className={`w-1.5 h-1.5 rounded-full ${accentColor.replace('text', 'bg')} shadow-[0_0_6px_currentColor]`} />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </motion.section>
-    );
+  const items = useMemo(() => {
+    if (!activeGalaxy) return [];
+    return results[activeGalaxy as keyof typeof results] || [];
+  }, [activeGalaxy, results]);
+
+  const handleGalaxySelect = (platform: string) => {
+    if (platform === 'universe') {
+       setView('universe');
+       setActiveGalaxy(null);
+       setActiveSystem(null);
+       return;
+    }
+    
+    const isLinked = linkedAccounts.some(a => a.platform === platform);
+    if (!isLinked) {
+       toast.error(`${platform.toUpperCase()} connection required for galaxy access.`);
+       openSyncModal();
+       return;
+    }
+    
+    setActiveGalaxy(platform);
+    setView('galaxy');
+  };
+
+  const handleSystemSelect = (genre: string) => {
+    setActiveSystem(genre);
+    setView('system');
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Discovery Header */}
-      <section className="mb-10 relative overflow-hidden rounded-[2rem] bg-[#0a0a0a] border border-white/5 p-6">
-        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+    <div className="max-w-7xl mx-auto pb-20">
+      <section className="mb-10 relative overflow-hidden rounded-[3rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
+        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
           <Globe className="w-64 h-64 text-blue-500 animate-pulse" />
         </div>
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-            <Sparkles className="w-3 h-3" />
-            <span>Neural Discovery Protocol v4.0</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
+            <Zap className="w-3 h-3" />
+            <span>Neural Discovery v5.0 // Astro Module</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
-            Explore <br /> the Verse.
+          <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter leading-none mb-6">
+            Discovery <br /> Galaxies.
           </h1>
-          <p className="text-gray-400 text-lg max-w-xl font-medium leading-relaxed mb-8">
-            SonicVerse analyzes frequency resonance across your archives to synthesize the next evolution of your listening experience.
+          <p className="text-gray-400 text-xl max-w-2xl font-medium leading-relaxed mb-10">
+            Traverse the musical universe. SonicVerse has mapped your archives into high-frequency constellations. Select a galaxy to initialize exploration.
           </p>
-          {!loading && (
-            <button 
-              onClick={fetchRecommendations}
-              className="group flex items-center gap-3 px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl shadow-white/5"
-            >
-              <Zap className="w-4 h-4 fill-current group-hover:animate-bounce" />
-              Recalibrate Grid
-            </button>
+          
+          {loading && (
+             <div className="flex items-center gap-4 text-blue-500">
+                <div className="w-6 h-6 border-b-2 border-current rounded-full animate-spin" />
+                <span className="text-xs font-black uppercase tracking-[0.3em]">Mapping Verse...</span>
+             </div>
           )}
         </div>
       </section>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 bg-[#0a0a0a] rounded-[3.5rem] border border-white/5">
-          <div className="relative">
-             <div className="w-24 h-24 rounded-full border-b-4 border-blue-500 animate-spin" />
-             <div className="absolute inset-0 flex items-center justify-center">
-                <Music className="w-8 h-8 text-blue-500 animate-pulse" />
-             </div>
-          </div>
-          <p className="mt-10 text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] animate-pulse">Mapping Neural Frequencies</p>
-        </div>
-      ) : (
-        <AnimatePresence mode="wait">
-          <motion.div 
-            key="results"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {isSpotifyConnected && renderSection('Spotify', 'spotify', results.spotify)}
-            {isYoutubeLinked && renderSection('YouTube Music', 'youtube', results.youtube)}
-            {isAppleLinked && renderSection('Apple Music', 'apple', results.apple)}
-            
-            {!isSpotifyConnected && !isYoutubeLinked && !isAppleLinked && (
-              <div className="py-16 flex flex-col items-center text-center max-w-xl mx-auto bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 p-8 shadow-2xl">
-                 <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/5">
-                    <Zap className="w-6 h-6 text-blue-500" />
+      <div className="relative">
+         <DiscoveryUniverse 
+           view={view}
+           activeGalaxy={activeGalaxy}
+           activeSystem={activeSystem}
+           systems={systems}
+           items={items}
+           onGalaxySelect={handleGalaxySelect}
+           onSystemSelect={handleSystemSelect}
+           onItemSelect={(item) => setSong(item, items)}
+         />
+         
+         {!isSpotifyConnected && !isYoutubeLinked && !isAppleLinked && (
+           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-[4rem]">
+              <div className="max-w-md text-center p-12 bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl">
+                 <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
+                    <Music className="w-8 h-8 text-blue-500" />
                  </div>
-                 <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4 leading-none">Archives Unreachable</h2>
-                 <p className="text-gray-500 text-base font-medium leading-relaxed mb-8">
-                    SonicVerse requires access to your external sonic archives to generate neural insights. 
-                    Synchronize your accounts to initialize the mapping sequence.
+                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Universe Offline</h3>
+                 <p className="text-gray-500 text-sm font-medium mb-8 leading-relaxed">
+                    SonicVerse requires access to your platform nodes to synthesize discovery galaxies.
                  </p>
                  <button 
                    onClick={openSyncModal}
-                   className="px-12 py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-white/5 hover:scale-105 transition-all"
+                   className="w-full px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
                  >
                    Establish Archive Link
                  </button>
-                 </div>
-                 )}
-                 </motion.div>
-                 </AnimatePresence>
-                 )}
-                 </div>
-                 );
-                 };
+              </div>
+           </div>
+         )}
+      </div>
+    </div>
+  );
+};
