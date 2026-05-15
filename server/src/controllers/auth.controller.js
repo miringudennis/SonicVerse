@@ -21,21 +21,22 @@ exports.register = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Use a transaction to ensure both user and profile are created
-    await db.query('BEGIN');
+    const client = await db.getClient();
     
     try {
-      const newUser = await db.query(
+      await client.query('BEGIN');
+      const newUser = await client.query(
         'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, role',
         [email, passwordHash]
       );
 
       const userId = newUser.rows[0].id;
-      await db.query(
+      await client.query(
         'INSERT INTO profiles (user_id, username, display_name) VALUES ($1, $2, $3)',
         [userId, username, username]
       );
 
-      await db.query('COMMIT');
+      await client.query('COMMIT');
       
       const token = jwt.sign(
         { id: userId, role: newUser.rows[0].role }, 
@@ -46,8 +47,10 @@ exports.register = async (req, res) => {
       console.log('Registration successful:', userId);
       res.status(201).json({ token, user: newUser.rows[0] });
     } catch (insertErr) {
-      await db.query('ROLLBACK');
+      await client.query('ROLLBACK');
       throw insertErr;
+    } finally {
+      client.release();
     }
   } catch (err) {
     console.error('Registration error detail:', err);

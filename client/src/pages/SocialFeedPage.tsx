@@ -13,6 +13,7 @@ type SocialTab = 'global' | 'following' | 'groups';
 export const SocialFeedPage = () => {
   const [activeTab, setActiveTab] = useState<SocialTab>('global');
   const [posts, setPosts] = useState<any[]>([]);
+  const [userPosts, setUserPosts] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
@@ -22,6 +23,7 @@ export const SocialFeedPage = () => {
   const [groupName, setGroupName] = useState('');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [groupsLoading, setGroupsLoading] = useState(false);
   const createGroupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export const SocialFeedPage = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCreateGroup]);
+
   const [filterLoading, setFilterLoading] = useState(false);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
@@ -60,7 +63,9 @@ export const SocialFeedPage = () => {
   }, [selectedGroup, setChatActive]);
 
   const fetchData = async () => {
-    setLoading(true);
+    if (activeTab === 'groups') setGroupsLoading(true);
+    else setLoading(true);
+
     try {
       if (activeTab === 'global') {
         const res = await api.get('/posts');
@@ -70,12 +75,16 @@ export const SocialFeedPage = () => {
         setFollowing(res.data);
       } else if (activeTab === 'groups') {
         const res = await api.get('/groups');
-        setGroups(res.data);
+        console.log('SonicVerse: Groups sync received:', res.data);
+        setGroups(Array.isArray(res.data) ? res.data : []);
       }
-    } catch (err) {
-      console.error('Failed to fetch data', err);
+    } catch (err: any) {
+      console.error('SonicVerse: Data sync failure', err);
+      const serverMsg = err.response?.data?.message || err.message;
+      toast.error(`Neural grid sync failed: ${serverMsg}`);
     } finally {
       setLoading(false);
+      setGroupsLoading(false);
     }
   };
 
@@ -88,12 +97,11 @@ export const SocialFeedPage = () => {
       const footer = document.querySelector('footer');
       if (!footer) return;
       const rect = footer.getBoundingClientRect();
-      // Hide button when footer top comes into view
       setIsFooterVisible(rect.top < window.innerHeight);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -113,12 +121,12 @@ export const SocialFeedPage = () => {
 
   const handleUserClick = async (followedUser: any) => {
     setSelectedUser(followedUser);
-    setPosts([]); // Immediate feedback
+    setUserPosts([]);
     setFilterLoading(true);
     try {
       await api.post('/social/update-seen', { followingId: followedUser.user_id });
       const res = await api.get(`/posts?userId=${followedUser.user_id}`);
-      setPosts(res.data);
+      setUserPosts(res.data);
       const followingRes = await api.get('/social/following');
       setFollowing(followingRes.data);
     } catch (err) {
@@ -141,7 +149,7 @@ export const SocialFeedPage = () => {
     setLoading(true);
     try {
       const res = await api.post('/groups', { name: groupName });
-      setGroups([...groups, { ...res.data, role: 'admin', status: 'accepted' }]);
+      setGroups(prev => [...prev, { ...res.data, role: 'admin', status: 'accepted', unread_count: 0 }]);
       setGroupName('');
       setShowCreateGroup(false);
       toast.success('Cluster initialized');
@@ -176,7 +184,7 @@ export const SocialFeedPage = () => {
       </section>
 
       {/* Tabs */}
-      <div className="flex items-center justify-center p-1.5 bg-white/5 rounded-2xl border border-white/5 max-w-md mx-auto sticky top-20 md:top-24 z-40 backdrop-blur-xl mx-4 sm:mx-auto">
+      <div className="flex items-center justify-center p-1.5 bg-white/5 rounded-2xl border border-white/5 max-w-md mx-4 sm:mx-auto sticky top-20 md:top-24 z-40 backdrop-blur-xl">
          {(['global', 'following', 'groups'] as SocialTab[]).map((tab) => (
            <button 
              key={tab}
@@ -196,23 +204,34 @@ export const SocialFeedPage = () => {
          ))}
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {activeTab === 'groups' && selectedGroup ? (
            <motion.div 
-             key="chat" 
-             initial={{ opacity: 0, x: 20 }} 
-             animate={{ opacity: 1, x: 0 }} 
-             exit={{ opacity: 0, x: -20 }}
+             key={`chat-${selectedGroup.id}`} 
+             initial={{ opacity: 0, scale: 0.98 }} 
+             animate={{ opacity: 1, scale: 1 }} 
+             exit={{ opacity: 0, scale: 0.98 }}
              className="fixed top-20 left-0 right-0 bottom-0 z-[100] md:relative md:top-auto md:z-auto md:h-[750px] w-full"
            >
               <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} />
            </motion.div>
         ) : (
-          <motion.div key="feed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-12">
+          <motion.div 
+            key={activeTab} 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -10 }} 
+            className="space-y-12"
+          >
             
             {activeTab === 'global' && (
               <div className="space-y-6">
-                {posts.map((post) => <PostCard key={post.id} post={post} />)}
+                {loading && posts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Syncing Global Grid...</p>
+                  </div>
+                ) : posts.map((post) => <PostCard key={post.id} post={post} />)}
               </div>
             )}
 
@@ -241,9 +260,9 @@ export const SocialFeedPage = () => {
                                 <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
                                 <p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Filtering Signal...</p>
                              </div>
-                          ) : posts.length === 0 ? (
+                          ) : userPosts.length === 0 ? (
                             <p className="text-center text-gray-600 py-12 font-black uppercase text-[10px] tracking-widest bg-white/5 rounded-3xl border border-white/5">No signals broadcasted from this node</p>
-                          ) : posts.map(post => <PostCard key={post.id} post={post} />)}
+                          ) : userPosts.map(post => <PostCard key={post.id} post={post} />)}
                        </div>
                     </div>
                   ) : (
@@ -253,7 +272,11 @@ export const SocialFeedPage = () => {
                              <Users className="w-5 h-5 text-blue-500" /> Active Links
                           </h3>
                           <div className="space-y-3">
-                             {following.length === 0 ? (
+                             {loading && following.length === 0 ? (
+                               <div className="flex flex-col items-center justify-center py-12">
+                                  <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                               </div>
+                             ) : following.length === 0 ? (
                                <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest p-12 bg-white/5 rounded-[2rem] border border-white/5 text-center">No neural links established</p>
                              ) : (
                                following.map((f) => (
@@ -331,7 +354,12 @@ export const SocialFeedPage = () => {
                   </AnimatePresence>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                     {groups.length === 0 ? (
+                     {groupsLoading && groups.length === 0 ? (
+                        <div className="col-span-full py-20 flex flex-col items-center justify-center">
+                           <Loader2 className="w-10 h-10 text-purple-500 animate-spin mb-4" />
+                           <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Scanning Clusters...</p>
+                        </div>
+                     ) : groups.length === 0 ? (
                         <div className="col-span-full p-20 bg-white/5 rounded-[3rem] border border-white/5 text-center">
                            <Users className="w-12 h-12 text-gray-800 mx-auto mb-6" />
                            <p className="text-gray-600 text-[10px] font-black uppercase tracking-[0.2em]">No private clusters established</p>
@@ -441,13 +469,6 @@ export const SocialFeedPage = () => {
                {isBroadcastOpen ? <X className="w-6 h-6 sm:w-7 sm:h-7" /> : <Radio className="w-6 h-6 sm:w-7 sm:h-7 group-hover:animate-pulse" />}
             </button>
          </motion.div>
-      )}
-
-      {loading && !posts.length && (
-         <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-            <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Syncing Neural Grid...</p>
-         </div>
       )}
     </div>
   );
