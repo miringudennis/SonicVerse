@@ -144,9 +144,11 @@ export const DiscoveryPage = () => {
     }
   };
 
+  const connectedPlatforms = useMemo(() => linkedAccounts.map(a => a.platform), [linkedAccounts]);
+
   return (
-    <div className="max-w-7xl mx-auto pb-20">
-      <section className="mb-8 relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-6 md:p-8 shadow-2xl">
+    <div className="max-w-7xl mx-auto px-4 md:px-0 pb-10 sm:pb-20">
+      <section className="mb-8 relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
           <Globe className="w-48 h-48 text-blue-500 animate-pulse" />
         </div>
@@ -155,10 +157,10 @@ export const DiscoveryPage = () => {
             <Zap className="w-3 h-3" />
             <span>Neural Discovery v5.5 // Multiverse Module</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+          <h1 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-tight md:leading-none mb-4">
             Neural <br /> Multiverse.
           </h1>
-          <p className="text-gray-400 text-base max-w-xl font-medium leading-relaxed mb-6">
+          <p className="text-gray-400 text-sm md:text-base max-w-xl font-medium leading-relaxed mb-6">
             Traverse your synchronized musical constellations. Select a galaxy to initialize high-frequency exploration across the neural grid.
           </p>
           
@@ -182,21 +184,23 @@ export const DiscoveryPage = () => {
            onSystemSelect={handleSystemSelect}
            onItemSelect={(item) => setSong(item, results[activeGalaxy as keyof typeof results] || [])}
            onBack={handleBack}
+           connectedPlatforms={connectedPlatforms}
          />
          
          {!isSpotifyConnected && !isYoutubeLinked && !isAppleLinked && (
-           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-[4rem]">
-              <div className="max-w-md text-center p-12 bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl">
-                 <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
-                    <Music className="w-8 h-8 text-blue-500" />
+           <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-sm rounded-[2.5rem] md:rounded-[4rem]">
+              <div className="max-w-md w-full mx-4 text-center p-8 md:p-12 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden">
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-50" />
+                 <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 md:mb-8 border border-blue-500/20">
+                    <Music className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
                  </div>
-                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Universe Offline</h3>
-                 <p className="text-gray-500 text-sm font-medium mb-8 leading-relaxed">
+                 <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Universe Offline</h3>
+                 <p className="text-gray-500 text-xs md:text-sm font-medium mb-8 leading-relaxed">
                     SonicVerse requires access to your platform nodes to synthesize discovery galaxies.
                  </p>
                  <button 
                    onClick={openSyncModal}
-                   className="w-full px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+                   className="w-full px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
                  >
                    Establish Archive Link
                  </button>

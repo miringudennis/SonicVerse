@@ -137,6 +137,7 @@ interface DiscoveryUniverseProps {
   activeSystem: string | null;
   systems: string[];
   items: any[];
+  connectedPlatforms: string[];
 }
 
 export const DiscoveryUniverse = ({ 
@@ -148,20 +149,22 @@ export const DiscoveryUniverse = ({
   activeGalaxy, 
   activeSystem,
   systems,
-  items
+  items,
+  connectedPlatforms
 }: DiscoveryUniverseProps) => {
   
+  const isMobile = window.innerWidth < 768;
   const galaxies = [
-    { id: 'spotify', label: 'Spotify', icon: Music, color: '#1DB954', position: [-15, 8, 0] as [number, number, number] },
-    { id: 'youtube', label: 'YT Music', icon: Video, color: '#FF0000', position: [15, 8, 0] as [number, number, number] },
-    { id: 'apple', label: 'Apple Music', icon: Play, color: '#fa243c', position: [0, -8, 8] as [number, number, number] },
-  ];
+    { id: 'spotify', label: 'Spotify', icon: Music, color: '#1DB954', position: (isMobile ? [-10, 10, 0] : [-15, 8, 0]) as [number, number, number] },
+    { id: 'youtube', label: 'YT Music', icon: Video, color: '#FF0000', position: (isMobile ? [10, 10, 0] : [15, 8, 0]) as [number, number, number] },
+    { id: 'apple', label: 'Apple Music', icon: Play, color: '#fa243c', position: (isMobile ? [0, -10, 0] : [0, -8, 8]) as [number, number, number] },
+  ].filter(g => connectedPlatforms.includes(g.id));
 
   const activeGalaxyData = galaxies.find(g => g.id === activeGalaxy);
 
   return (
-    <div className="w-full h-[750px] relative bg-black/40 rounded-[4rem] border border-white/5 overflow-hidden">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 35], fov: 45 }}>
+    <div className="w-full h-[450px] sm:h-[600px] md:h-[750px] relative bg-black/40 rounded-[2rem] sm:rounded-[2.5rem] md:rounded-[4rem] border border-white/5 overflow-hidden">
+      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 35], fov: isMobile ? 55 : 45 }}>
         <PerspectiveCamera makeDefault position={[0, 0, 35]} />
         <OrbitControls 
           enableZoom={true} 
@@ -172,7 +175,7 @@ export const DiscoveryUniverse = ({
           autoRotateSpeed={0.3}
         />
         
-        <Stars radius={150} depth={50} count={12000} factor={4} saturation={0} fade speed={1.5} />
+        <Stars radius={150} depth={50} count={isMobile ? 6000 : 12000} factor={4} saturation={0} fade speed={1.5} />
         
         <ambientLight intensity={0.6} />
         <pointLight position={[20, 20, 20]} intensity={2.5} />
@@ -183,13 +186,14 @@ export const DiscoveryUniverse = ({
             key={g.id}
             {...g}
             onClick={() => onGalaxySelect(g.id)}
+            scale={isMobile ? 0.7 : 1}
           />
         ))}
 
         {/* Galaxy View: Show Genre Systems */}
         {view === 'galaxy' && systems.map((s, i) => {
             const angle = (i / systems.length) * Math.PI * 2;
-            const r = 18;
+            const r = isMobile ? 12 : 18;
             const pos: [number, number, number] = [Math.cos(angle) * r, Math.sin(angle) * r, 0];
             return (
               <SolarSystem 
@@ -198,6 +202,7 @@ export const DiscoveryUniverse = ({
                 color={activeGalaxyData?.color || '#fff'}
                 position={pos}
                 onClick={() => onSystemSelect(s)}
+                scale={isMobile ? 0.6 : 1}
               />
             );
         })}
@@ -205,12 +210,12 @@ export const DiscoveryUniverse = ({
         {/* System View: Show Item Planets */}
         {view === 'system' && items.map((item, i) => {
             const angle = (i / items.length) * Math.PI * 2;
-            const r = 15;
+            const r = isMobile ? 10 : 15;
             const pos: [number, number, number] = [Math.cos(angle) * r, Math.sin(angle) * r, 0];
             return (
               <group key={item.id} position={pos}>
                 <Float speed={2} rotationIntensity={1.5} floatIntensity={1.5}>
-                  <Sphere args={[1.5, 64, 64]} onClick={() => onItemSelect(item)}>
+                  <Sphere args={[isMobile ? 1 : 1.5, 64, 64]} onClick={() => onItemSelect(item)}>
                     <meshStandardMaterial 
                       color="#fff" 
                       emissive={activeGalaxyData?.color || '#fff'} 
@@ -220,14 +225,14 @@ export const DiscoveryUniverse = ({
                     />
                   </Sphere>
                   <Html distanceFactor={12} position={[0, 0, 0]} center>
-                    <div className="flex flex-col items-center gap-3 cursor-pointer group" onClick={() => onItemSelect(item)}>
+                    <div className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => onItemSelect(item)}>
                        <div className="relative">
-                          <div className={`absolute -inset-2 bg-gradient-to-tr from-white to-${activeGalaxyData?.color} rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity`} />
-                          <img src={item.cover_url} className="w-20 h-20 rounded-2xl border-2 border-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-500 relative z-10" alt="" />
+                          <div className={`absolute -inset-1 md:-inset-2 bg-gradient-to-tr from-white to-${activeGalaxyData?.color} rounded-xl md:rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity`} />
+                          <img src={item.cover_url} className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl border-2 border-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-500 relative z-10" alt="" />
                        </div>
-                       <div className="bg-black/70 backdrop-blur-xl px-3 py-1 rounded-lg border border-white/10 text-center max-w-[120px] shadow-2xl">
-                          <p className="text-[8px] font-black text-white uppercase truncate tracking-tighter">{item.title}</p>
-                          <p className="text-[6px] text-gray-400 font-black uppercase truncate tracking-widest">{item.artist_name}</p>
+                       <div className="bg-black/70 backdrop-blur-xl px-2 py-1 md:px-3 md:py-1 rounded-lg border border-white/10 text-center max-w-[60px] sm:max-w-[80px] md:max-w-[120px] shadow-2xl">
+                          <p className="text-[6px] sm:text-[7px] md:text-[8px] font-black text-white uppercase truncate tracking-tighter">{item.title}</p>
+                          <p className="text-[4px] sm:text-[5px] md:text-[6px] text-gray-400 font-black uppercase truncate tracking-widest">{item.artist_name}</p>
                        </div>
                     </div>
                   </Html>
@@ -240,12 +245,12 @@ export const DiscoveryUniverse = ({
         {view !== 'universe' && (
            <group>
               {/* Maintain Galaxy Visual in background */}
-              <Points positions={new Float32Array(3000 * 3).map(() => THREE.MathUtils.randFloatSpread(40))} frustumCulled={false}>
+              <Points positions={new Float32Array((isMobile ? 1500 : 3000) * 3).map(() => THREE.MathUtils.randFloatSpread(40))} frustumCulled={false}>
                  <PointMaterial transparent color={activeGalaxyData?.color || '#fff'} size={0.08} opacity={0.1} sizeAttenuation />
               </Points>
 
               <Float speed={1.5}>
-                <Sphere args={[4, 128, 128]}>
+                <Sphere args={[isMobile ? 2.5 : 4, 128, 128]}>
                   <meshStandardMaterial 
                     color={activeGalaxyData?.color || '#fff'} 
                     emissive={activeGalaxyData?.color || '#fff'}
@@ -259,13 +264,13 @@ export const DiscoveryUniverse = ({
               
               <Html center>
                  <div className="text-center group cursor-default">
-                    <p className="text-[10px] font-black text-white uppercase tracking-[0.5em] mb-3 opacity-60">
+                    <p className="text-[6px] sm:text-[8px] md:text-[10px] font-black text-white uppercase tracking-[0.5em] mb-2 md:mb-3 opacity-60">
                        {view === 'galaxy' ? 'GALACTIC NUCLEUS' : 'SYSTEM CORE'}
                     </p>
-                    <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+                    <h2 className="text-lg sm:text-2xl md:text-4xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
                        {view === 'galaxy' ? activeGalaxy?.toUpperCase() : activeSystem?.toUpperCase()}
                     </h2>
-                    <div className={`mt-6 h-1 w-20 mx-auto rounded-full bg-gradient-to-r from-transparent via-${activeGalaxyData?.color} to-transparent`} />
+                    <div className={`mt-3 md:mt-6 h-0.5 md:h-1 w-10 md:w-20 mx-auto rounded-full bg-gradient-to-r from-transparent via-${activeGalaxyData?.color} to-transparent`} />
                  </div>
               </Html>
            </group>
@@ -273,35 +278,35 @@ export const DiscoveryUniverse = ({
       </Canvas>
 
       {/* Navigation Overlay */}
-      <div className="absolute top-10 left-10 z-10 flex flex-col gap-5">
-        <div className="flex items-center gap-5 px-7 py-5 rounded-[2.5rem] bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl">
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-10 md:left-10 z-10 flex flex-col gap-3 sm:gap-4 md:gap-5">
+        <div className="flex items-center gap-3 md:gap-5 px-4 py-2 sm:px-5 sm:py-3 md:px-7 md:py-5 rounded-xl sm:rounded-2xl md:rounded-[2.5rem] bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl">
           <div className="relative">
-             <div className={`absolute -inset-2 bg-blue-500 rounded-full blur-md animate-pulse opacity-50`} />
-             <Search className="w-5 h-5 text-blue-400 relative z-10" />
+             <div className={`absolute -inset-1 sm:-inset-2 bg-blue-500 rounded-full blur-md animate-pulse opacity-50`} />
+             <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-400 relative z-10" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-black text-white uppercase tracking-[0.3em]">Astro Explorer v5.2</span>
-            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Traversing: {view.toUpperCase()}</span>
+            <span className="text-[8px] sm:text-[10px] md:text-xs font-black text-white uppercase tracking-[0.3em]">Astro Explorer</span>
+            <span className="text-[6px] sm:text-[8px] md:text-[10px] text-gray-500 font-black uppercase tracking-widest">Traversing: {view.toUpperCase()}</span>
           </div>
         </div>
         
         {view !== 'universe' && (
            <button 
              onClick={onBack}
-             className="px-8 py-4 rounded-3xl bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-2xl flex items-center gap-3 self-start group"
+             className="px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl sm:rounded-2xl md:rounded-3xl bg-white text-black text-[8px] sm:text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-2xl flex items-center gap-2 md:gap-3 self-start group"
            >
-             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Revert Orbit
+             <ArrowLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 group-hover:-translate-x-1 transition-transform" /> Revert Orbit
            </button>
         )}
       </div>
 
-      <div className="absolute bottom-12 right-12 z-10 text-right">
-        <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">Interactive Controls</p>
-        <div className="px-7 py-4 rounded-[2rem] bg-black/60 border border-white/10 backdrop-blur-2xl inline-block shadow-2xl">
-          <p className="text-[11px] font-black text-white uppercase italic tracking-tighter">
-            {view === 'universe' ? 'Select Galaxy to Synchronize' : view === 'galaxy' ? 'Select Solar System to Initialize' : 'Select Planet to Stream Signal'}
+      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-12 md:right-12 z-10 text-right max-w-[150px] sm:max-w-[200px] md:max-w-none">
+        <p className="hidden md:block text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4">Interactive Controls</p>
+        <div className="px-4 py-2 sm:px-5 sm:py-3 md:px-7 md:py-4 rounded-lg sm:rounded-xl md:rounded-[2rem] bg-black/60 border border-white/10 backdrop-blur-2xl inline-block shadow-2xl">
+          <p className="text-[7px] sm:text-[9px] md:text-[11px] font-black text-white uppercase italic tracking-tighter">
+            {view === 'universe' ? 'Select Galaxy' : view === 'galaxy' ? 'Select System' : 'Select Planet'}
           </p>
-          <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-2">Drag: Orient • Scroll: Focal Length</p>
+          <p className="hidden md:block text-[9px] text-gray-500 uppercase tracking-widest mt-2">Drag: Orient • Scroll: Focal Length</p>
         </div>
       </div>
     </div>

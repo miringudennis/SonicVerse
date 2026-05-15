@@ -121,7 +121,7 @@ export const SettingsPage = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto pb-20">
+    <div className="max-w-5xl mx-auto px-4 md:px-0 pb-20">
       {/* Settings Header */}
       <section className="relative overflow-hidden rounded-[2rem] bg-[#0a0a0a] border border-white/5 p-6 md:p-8 mb-8 shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
@@ -142,7 +142,7 @@ export const SettingsPage = () => {
            </div>
            <button 
              onClick={() => navigate('/dashboard')}
-             className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all group shrink-0"
+             className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all group shrink-0"
            >
              <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
            </button>
@@ -150,31 +150,33 @@ export const SettingsPage = () => {
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Navigation Column */}
+        {/* Navigation Column / Row */}
         <div className="lg:col-span-4 flex flex-col gap-3">
           <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] px-4 mb-2">Modules</p>
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center justify-between px-5 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
-                activeTab === tab.id 
-                  ? 'bg-white border-white text-black shadow-xl shadow-white/5' 
-                  : 'bg-[#0a0a0a] border-white/5 text-gray-500 hover:text-white hover:border-white/10'
-              }`}
-            >
-              <span className="flex items-center gap-3">
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-              </span>
-              {activeTab === tab.id && <motion.div layoutId="active" className="w-1.5 h-1.5 rounded-full bg-black" />}
-            </button>
-          ))}
+          <div className="flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 scrollbar-hide">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-shrink-0 lg:w-full flex items-center justify-between px-5 py-4 rounded-[1.25rem] lg:rounded-[1.5rem] text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+                  activeTab === tab.id 
+                    ? 'bg-white border-white text-black shadow-xl shadow-white/5' 
+                    : 'bg-[#0a0a0a] border-white/5 text-gray-500 hover:text-white hover:border-white/10'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </span>
+                {activeTab === tab.id && <motion.div layoutId="active" className="hidden lg:block w-1.5 h-1.5 rounded-full bg-black" />}
+              </button>
+            ))}
+          </div>
           
-          <div className="mt-6 pt-6 border-t border-white/5">
+          <div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-white/5">
              <button 
                 onClick={() => { logout(); navigate('/'); }}
-                className="w-full flex items-center gap-3 px-5 py-4 rounded-[1.5rem] bg-red-500/5 border border-red-500/10 text-red-500/70 hover:text-red-500 hover:bg-red-500/10 text-[10px] font-black uppercase tracking-[0.2em] transition-all"
+                className="w-full flex items-center gap-3 px-5 py-4 rounded-[1.25rem] lg:rounded-[1.5rem] bg-red-500/5 border border-red-500/10 text-red-500/70 hover:text-red-500 hover:bg-red-500/10 text-[10px] font-black uppercase tracking-[0.2em] transition-all"
              >
                 <LogOut className="w-4 h-4" /> Terminate Session
              </button>
@@ -185,20 +187,20 @@ export const SettingsPage = () => {
         <div className="lg:col-span-8">
           <motion.div 
             key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 p-8 md:p-10 shadow-2xl relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-[#0a0a0a] rounded-[2rem] md:rounded-[2.5rem] border border-white/5 p-6 md:p-10 shadow-2xl relative overflow-hidden"
           >
               <div className="absolute top-0 left-0 w-1 bg-blue-500 h-full opacity-30" />
               
-              <div className="space-y-12">
+              <div className="space-y-10 md:space-y-12">
                 
                 {activeTab === 'profile' && (
-                  <form onSubmit={handleSave} className="space-y-12">
+                  <form onSubmit={handleSave} className="space-y-10 md:space-y-12">
                     {/* Identity Avatar */}
-                    <div className="flex flex-col md:flex-row items-center gap-10">
+                    <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10">
                       <div className="relative group">
-                        <div className="w-32 h-32 rounded-[2.5rem] bg-white/5 border-2 border-white/10 flex items-center justify-center text-4xl font-black text-white shadow-2xl relative overflow-hidden">
+                        <div className="w-28 h-28 md:w-32 md:h-32 rounded-[2rem] md:rounded-[2.5rem] bg-white/5 border-2 border-white/10 flex items-center justify-center text-4xl font-black text-white shadow-2xl relative overflow-hidden">
                           {formData.avatar_url ? (
                             <img src={formData.avatar_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Identity" />
                           ) : (
@@ -219,9 +221,9 @@ export const SettingsPage = () => {
                         <button 
                           type="button" 
                           onClick={() => fileInputRef.current?.click()}
-                          className="absolute -bottom-2 -right-2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform active:scale-95"
+                          className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-9 h-9 md:w-10 md:h-10 bg-white text-black rounded-xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform active:scale-95"
                         >
-                          <Camera className="w-5 h-5" />
+                          <Camera className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
                         <input 
                           type="file" 
@@ -232,13 +234,13 @@ export const SettingsPage = () => {
                         />
                       </div>
                       <div className="flex-1 text-center md:text-left">
-                        <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Visual Identifier</h3>
-                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-6">Established Nodes Require Identifiers // Max Payload 5MB</p>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                        <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Visual Identifier</h3>
+                        <p className="text-gray-500 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-6">Established Nodes Require Identifiers // Max Payload 5MB</p>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4">
                           <button 
                             type="button" 
                             onClick={() => fileInputRef.current?.click()}
-                            className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
+                            className="px-5 py-2.5 md:px-6 md:py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all"
                           >
                             Update Data
                           </button>
@@ -246,7 +248,7 @@ export const SettingsPage = () => {
                             <button 
                               type="button" 
                               onClick={() => setFormData({...formData, avatar_url: ''})}
-                              className="px-6 py-3 text-red-500/70 hover:text-red-500 hover:bg-red-500/5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2"
+                              className="px-5 py-2.5 md:px-6 md:py-3 text-red-500/70 hover:text-red-500 hover:bg-red-500/5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2"
                             >
                               <Trash2 className="w-3 h-3" /> Wipe Identifier
                             </button>
@@ -255,14 +257,14 @@ export const SettingsPage = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-white/5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 pt-10 border-t border-white/5">
                       <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Handle Name</label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                           <input
                             type="text"
-                            className="w-full bg-white/5 border border-white/10 p-5 pl-12 rounded-2xl focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-white font-bold uppercase tracking-tighter"
+                            className="w-full bg-white/5 border border-white/10 p-4 md:p-5 pl-12 rounded-2xl focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-white font-bold uppercase tracking-tighter"
                             value={formData.username}
                             onChange={(e) => setFormData({...formData, username: e.target.value})}
                           />
@@ -275,27 +277,27 @@ export const SettingsPage = () => {
                           <input
                             type="email"
                             disabled
-                            className="w-full bg-white/5 border border-white/5 p-5 pl-12 rounded-2xl text-gray-600 cursor-not-allowed font-bold"
+                            className="w-full bg-white/5 border border-white/5 p-4 md:p-5 pl-12 rounded-2xl text-gray-600 cursor-not-allowed font-bold"
                             value={formData.email}
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="pt-10 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/5">
+                    <div className="pt-8 md:pt-10 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/5">
                       <div className="flex-1" />
-                      <div className="flex gap-4">
+                      <div className="flex w-full sm:w-auto gap-4">
                         <button
                           type="button"
                           onClick={() => navigate('/dashboard')}
-                          className="px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] text-gray-600 hover:text-white transition-all"
+                          className="flex-1 sm:flex-none px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] text-gray-600 hover:text-white transition-all"
                         >
                           Abort
                         </button>
                         <button
                           type="submit"
                           disabled={loading}
-                          className="bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center gap-3 active:scale-95 shadow-xl shadow-white/5 disabled:opacity-30"
+                          className="flex-1 sm:flex-none bg-white text-black px-8 md:px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl shadow-white/5 disabled:opacity-30"
                         >
                           {loading ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -312,11 +314,11 @@ export const SettingsPage = () => {
                 )}
 
                 {activeTab === 'security' && (
-                  <form onSubmit={handleSave} className="space-y-10">
-                    <div className="bg-blue-600/5 border border-blue-500/10 p-8 rounded-[2rem] flex items-start gap-6 relative overflow-hidden">
+                  <form onSubmit={handleSave} className="space-y-8 md:space-y-10">
+                    <div className="bg-blue-600/5 border border-blue-500/10 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] flex flex-col md:flex-row items-start gap-4 md:gap-6 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-2xl rounded-full" />
-                      <Shield className="w-8 h-8 text-blue-500 shrink-0" />
-                      <p className="text-sm text-blue-200/50 font-medium uppercase tracking-[0.05em] leading-relaxed relative z-10">
+                      <Shield className="w-6 h-6 md:w-8 md:h-8 text-blue-500 shrink-0" />
+                      <p className="text-[11px] md:text-sm text-blue-200/50 font-medium uppercase tracking-[0.05em] leading-relaxed relative z-10">
                         Authentication Guard: Modification of security parameters requires immediate verification of current access credentials.
                       </p>
                     </div>
@@ -327,7 +329,7 @@ export const SettingsPage = () => {
                         <input
                           type={showCurrentPass ? "text" : "password"}
                           placeholder="Initialize Verification"
-                          className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all text-white pr-14 font-bold"
+                          className="w-full bg-white/5 border border-white/10 p-4 md:p-5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all text-white pr-14 font-bold"
                           value={formData.currentPassword}
                           onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
                         />
@@ -341,13 +343,13 @@ export const SettingsPage = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 pt-6 border-t border-white/5">
                       <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">New Access Key</label>
                         <input
                           type="password"
                           placeholder="Generate New Key"
-                          className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all text-white font-bold"
+                          className="w-full bg-white/5 border border-white/10 p-4 md:p-5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all text-white font-bold"
                           value={formData.newPassword}
                           onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                         />
@@ -357,27 +359,27 @@ export const SettingsPage = () => {
                         <input
                           type="password"
                           placeholder="Verify New Key"
-                          className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all text-white font-bold"
+                          className="w-full bg-white/5 border border-white/10 p-4 md:p-5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all text-white font-bold"
                           value={formData.confirmPassword}
                           onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                         />
                       </div>
                     </div>
 
-                    <div className="pt-10 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/5">
+                    <div className="pt-8 md:pt-10 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/5">
                       <div className="flex-1" />
-                      <div className="flex gap-4">
+                      <div className="flex w-full sm:w-auto gap-4">
                         <button
                           type="button"
                           onClick={() => navigate('/dashboard')}
-                          className="px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] text-gray-600 hover:text-white transition-all"
+                          className="flex-1 sm:flex-none px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] text-gray-600 hover:text-white transition-all"
                         >
                           Abort
                         </button>
                         <button
                           type="submit"
                           disabled={loading}
-                          className="bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center gap-3 active:scale-95 shadow-xl shadow-white/5 disabled:opacity-30"
+                          className="flex-1 sm:flex-none bg-white text-black px-8 md:px-12 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl shadow-white/5 disabled:opacity-30"
                         >
                           {loading ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -394,8 +396,8 @@ export const SettingsPage = () => {
                 )}
 
                 {activeTab === 'accounts' && (
-                  <div className="space-y-8">
-                    <div className="flex flex-col gap-6">
+                  <div className="space-y-6 md:space-y-8">
+                    <div className="flex flex-col gap-4 md:gap-6">
                       {[
                         { id: 'spotify', name: 'Spotify', icon: Music, color: 'text-[#1DB954]' },
                         { id: 'youtube', name: 'YouTube Music', icon: Video, color: 'text-[#FF0000]' },
@@ -405,14 +407,14 @@ export const SettingsPage = () => {
                         const accountData = linkedAccounts.find(a => a.platform === platform.id);
 
                         return (
-                          <div key={platform.id} className="group flex items-center justify-between p-6 bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 hover:border-white/10 transition-all shadow-lg">
-                             <div className="flex items-center gap-6">
-                                <div className={`w-14 h-14 rounded-[1.25rem] bg-white/5 flex items-center justify-center border border-white/10 ${isLinked ? platform.color : 'text-gray-700'} group-hover:scale-110 transition-transform`}>
-                                   <platform.icon className="w-6 h-6" />
+                          <div key={platform.id} className="group flex flex-col sm:flex-row items-center justify-between p-5 md:p-6 bg-[#0c0c0c] rounded-[2rem] md:rounded-[2.5rem] border border-white/5 hover:border-white/10 transition-all shadow-lg gap-4">
+                             <div className="flex items-center gap-5 md:gap-6 w-full sm:w-auto">
+                                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.25rem] bg-white/5 flex items-center justify-center border border-white/10 ${isLinked ? platform.color : 'text-gray-700'} group-hover:scale-110 transition-transform`}>
+                                   <platform.icon className="w-5 h-5 md:w-6 md:h-6" />
                                 </div>
-                                <div>
-                                   <p className="font-black uppercase tracking-tighter text-lg italic text-white group-hover:text-blue-400 transition-colors">{platform.name}</p>
-                                   <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">
+                                <div className="flex-1">
+                                   <p className="font-black uppercase tracking-tighter text-base md:text-lg italic text-white group-hover:text-blue-400 transition-colors">{platform.name}</p>
+                                   <p className="text-[9px] md:text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">
                                       {isLinked ? `Connected as ${accountData?.username}` : 'Not Synchronized'}
                                    </p>
                                 </div>
@@ -422,7 +424,7 @@ export const SettingsPage = () => {
                                <button 
                                  type="button"
                                  onClick={() => handleUnlink(platform.id)}
-                                 className="px-6 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg"
+                                 className="w-full sm:w-auto px-6 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg"
                                >
                                  Unlink Archive
                                </button>
@@ -430,7 +432,7 @@ export const SettingsPage = () => {
                                <button 
                                  type="button"
                                  onClick={openSyncModal}
-                                 className="px-6 py-3 bg-white text-black hover:scale-105 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-white/5"
+                                 className="w-full sm:w-auto px-6 py-3 bg-white text-black hover:scale-105 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-white/5"
                                >
                                  Establish Link
                                </button>
@@ -440,8 +442,8 @@ export const SettingsPage = () => {
                       })}
                     </div>
 
-                    <div className="bg-white/5 p-8 rounded-[2rem] border border-dashed border-white/10 text-center">
-                       <p className="text-gray-500 text-xs font-medium leading-relaxed max-w-md mx-auto">
+                    <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-dashed border-white/10 text-center">
+                       <p className="text-gray-500 text-[11px] md:text-xs font-medium leading-relaxed max-w-md mx-auto">
                           SonicVerse synchronization allows the neural engine to analyze your external streaming patterns and synthesize personalized discoveries.
                        </p>
                     </div>
@@ -449,19 +451,19 @@ export const SettingsPage = () => {
                 )}
 
                 {activeTab === 'prefs' && (
-                  <div className="space-y-8">
+                  <div className="space-y-6 md:space-y-8">
                     {[
                       { title: 'Neural Notifications', desc: 'Receive synthesized discovery logs', active: true },
                       { title: 'Public Node Status', desc: 'Broadcast listener activity to the grid', active: false },
                       { title: 'High Fidelity Streams', desc: 'Prioritize lossless audio packets', active: true },
                     ].map((pref) => (
-                      <div key={pref.title} className="flex items-center justify-between p-6 bg-[#0c0c0c] rounded-[2.5rem] border border-white/10 hover:border-white/20 transition-all group shadow-lg">
-                         <div>
-                            <p className="font-black uppercase tracking-tighter text-lg italic text-white group-hover:text-blue-400 transition-colors">{pref.title}</p>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.1em] mt-1">{pref.desc}</p>
+                      <div key={pref.title} className="flex items-center justify-between p-5 md:p-6 bg-[#0c0c0c] rounded-[2rem] md:rounded-[2.5rem] border border-white/10 hover:border-white/20 transition-all group shadow-lg">
+                         <div className="flex-1 pr-4">
+                            <p className="font-black uppercase tracking-tighter text-base md:text-lg italic text-white group-hover:text-blue-400 transition-colors">{pref.title}</p>
+                            <p className="text-[9px] md:text-[10px] text-gray-500 font-black uppercase tracking-[0.1em] mt-1">{pref.desc}</p>
                          </div>
-                         <div className={`w-14 h-8 rounded-full relative cursor-pointer transition-colors duration-500 ${pref.active ? 'bg-blue-600' : 'bg-white/10'}`}>
-                            <div className={`absolute top-1.5 w-5 h-5 bg-white rounded-full shadow-2xl transition-all duration-500 ${pref.active ? 'right-1.5' : 'left-1.5'}`} />
+                         <div className={`w-12 h-7 md:w-14 md:h-8 rounded-full relative cursor-pointer transition-colors duration-500 flex-shrink-0 ${pref.active ? 'bg-blue-600' : 'bg-white/10'}`}>
+                            <div className={`absolute top-1 md:top-1.5 w-5 h-5 bg-white rounded-full shadow-2xl transition-all duration-500 ${pref.active ? 'right-1 md:right-1.5' : 'left-1 md:left-1.5'}`} />
                          </div>
                       </div>
                     ))}

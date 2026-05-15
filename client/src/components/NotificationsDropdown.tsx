@@ -112,16 +112,21 @@ export const NotificationsDropdown = () => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-4 w-80 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl z-[60] overflow-hidden"
+            className="fixed inset-x-4 top-24 md:absolute md:inset-auto md:right-0 md:top-full md:mt-4 w-auto md:w-80 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl z-[60] overflow-hidden"
           >
             <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
                <h3 className="text-xs font-black text-white uppercase tracking-widest">Neural Alerts</h3>
-               {unreadCount > 0 && (
-                 <button onClick={markAllAsRead} className="text-[8px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-400 transition-colors">Clear All</button>
-               )}
+               <div className="flex items-center gap-4">
+                 {unreadCount > 0 && (
+                   <button onClick={markAllAsRead} className="text-[8px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-400 transition-colors">Clear All</button>
+                 )}
+                 <button onClick={() => setIsOpen(false)} className="md:hidden text-gray-500 hover:text-white">
+                   <Bell className="w-4 h-4" />
+                 </button>
+               </div>
             </div>
 
-            <div className="max-h-96 overflow-y-auto custom-scrollbar">
+            <div className="max-h-[60vh] md:max-h-96 overflow-y-auto custom-scrollbar">
                {notifications.length === 0 ? (
                  <div className="p-10 text-center text-gray-600">
                     <Bell className="w-8 h-8 mx-auto mb-3 opacity-20" />

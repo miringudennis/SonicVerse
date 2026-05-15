@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { UserSearch } from '../components/UserSearch';
 import { GroupChat } from '../components/GroupChat';
 import toast from 'react-hot-toast';
+import { useUIStore } from '../store/uiStore';
 
 type SocialTab = 'global' | 'following' | 'groups';
 
@@ -41,6 +42,22 @@ export const SocialFeedPage = () => {
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
   const { user } = useAuthStore();
+  const { setChatActive } = useUIStore();
+
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (selectedGroup && isMobile) {
+      document.body.style.overflow = 'hidden';
+      setChatActive(true);
+    } else {
+      document.body.style.overflow = 'unset';
+      setChatActive(false);
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      setChatActive(false);
+    };
+  }, [selectedGroup, setChatActive]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -136,7 +153,7 @@ export const SocialFeedPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-32 relative">
+    <div className="max-w-4xl mx-auto space-y-12 pb-12 sm:pb-32 relative">
       {/* Social Header */}
       <section className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
@@ -147,10 +164,10 @@ export const SocialFeedPage = () => {
              <Sparkles className="w-3 h-3" />
              <span>Neural Social Protocol v4.0</span>
            </div>
-           <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
              {activeTab === 'global' ? 'Global Verse.' : activeTab === 'following' ? 'Neural Connections.' : 'Group Clusters.'}
            </h1>
-           <p className="text-gray-400 text-lg max-w-xl font-medium leading-relaxed">
+           <p className="text-gray-400 text-sm md:text-lg max-w-xl font-medium leading-relaxed">
              {activeTab === 'global' && 'Synchronize with the collective global stream of consciousness.'}
              {activeTab === 'following' && 'Monitor specifically tuned signals from your established connections.'}
              {activeTab === 'groups' && 'Private multi-node communication channels for hyper-focused jam sessions.'}
@@ -159,7 +176,7 @@ export const SocialFeedPage = () => {
       </section>
 
       {/* Tabs */}
-      <div className="flex items-center justify-center p-1.5 bg-white/5 rounded-2xl border border-white/5 max-w-md mx-auto sticky top-24 z-40 backdrop-blur-xl">
+      <div className="flex items-center justify-center p-1.5 bg-white/5 rounded-2xl border border-white/5 max-w-md mx-auto sticky top-20 md:top-24 z-40 backdrop-blur-xl mx-4 sm:mx-auto">
          {(['global', 'following', 'groups'] as SocialTab[]).map((tab) => (
            <button 
              key={tab}
@@ -168,7 +185,7 @@ export const SocialFeedPage = () => {
                setSelectedGroup(null);
                setSelectedUser(null);
              }}
-             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+             className={`flex-1 py-2.5 sm:py-3 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
                activeTab === tab 
                  ? 'bg-white text-black shadow-xl' 
                  : 'text-gray-500 hover:text-white'
@@ -181,7 +198,13 @@ export const SocialFeedPage = () => {
 
       <AnimatePresence mode="wait">
         {activeTab === 'groups' && selectedGroup ? (
-           <motion.div key="chat" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+           <motion.div 
+             key="chat" 
+             initial={{ opacity: 0, x: 20 }} 
+             animate={{ opacity: 1, x: 0 }} 
+             exit={{ opacity: 0, x: -20 }}
+             className="fixed top-20 left-0 right-0 bottom-0 z-[100] md:relative md:top-auto md:z-auto md:h-[750px] w-full"
+           >
               <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} />
            </motion.div>
         ) : (
@@ -337,7 +360,14 @@ export const SocialFeedPage = () => {
                                )}
                             </div>
                             <h4 className="text-lg font-black text-white italic tracking-tighter mb-1">{g.name}</h4>
-                            <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-4">Link Status: {g.status}</p>
+                            <div className="flex items-center justify-between">
+                               <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">Link Status: {g.status}</p>
+                               {g.unread_count > 0 && (
+                                 <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-[0_0_10px_#3b82f6]">
+                                    <span className="text-[8px] font-black text-white">{g.unread_count}</span>
+                                 </div>
+                               )}
+                            </div>
                             
                             {g.status === 'invited' && (
                               <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -364,15 +394,15 @@ export const SocialFeedPage = () => {
              pointerEvents: isFooterVisible ? 'none' : 'auto'
            }}
            transition={{ duration: 0.4, ease: 'circOut' }}
-           className="fixed bottom-32 right-8 z-[5000] flex items-end gap-4 pointer-events-none"
+           className="fixed bottom-24 sm:bottom-32 right-4 sm:right-8 z-[5000] flex items-end gap-4 pointer-events-none"
          >
             <AnimatePresence>
                {isBroadcastOpen && (
                   <motion.div 
                     initial={{ width: 0, opacity: 0, x: 20 }}
-                    animate={{ width: 'min(calc(100vw - 120px), 450px)', opacity: 1, x: 0 }}
+                    animate={{ width: 'min(calc(100vw - 100px), 450px)', opacity: 1, x: 0 }}
                     exit={{ width: 0, opacity: 0, x: 20 }}
-                    className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-auto overflow-hidden relative"
+                    className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-auto overflow-hidden relative"
                   >
                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-purple-600 opacity-50" />
                      <textarea
@@ -386,13 +416,13 @@ export const SocialFeedPage = () => {
                        placeholder="Broadcast signal..."
                        rows={1}
                        autoFocus
-                       className="w-full bg-transparent border-none p-2 text-base font-medium text-white placeholder:text-gray-700 focus:outline-none focus:ring-0 resize-none custom-scrollbar"
+                       className="w-full bg-transparent border-none p-2 text-sm sm:text-base font-medium text-white placeholder:text-gray-700 focus:outline-none focus:ring-0 resize-none custom-scrollbar"
                      />
                      {content.trim() && (
                         <div className="flex justify-end mt-2">
                            <button 
                              onClick={() => handleSubmit()}
-                             className="px-8 py-2.5 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
+                             className="px-6 sm:px-8 py-2 sm:py-2.5 bg-white text-black rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
                            >
                              Deploy
                            </button>
@@ -406,9 +436,9 @@ export const SocialFeedPage = () => {
                 setIsBroadcastOpen(!isBroadcastOpen);
                 if (isBroadcastOpen) setContent('');
               }}
-              className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(0,0,0,0.6)] hover:scale-110 transition-all active:scale-95 group pointer-events-auto relative z-10 ${isBroadcastOpen ? 'bg-white text-black' : 'bg-blue-600 text-white'}`}
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(0,0,0,0.6)] hover:scale-110 transition-all active:scale-95 group pointer-events-auto relative z-10 ${isBroadcastOpen ? 'bg-white text-black' : 'bg-blue-600 text-white'}`}
             >
-               {isBroadcastOpen ? <X className="w-7 h-7" /> : <Radio className="w-7 h-7 group-hover:animate-pulse" />}
+               {isBroadcastOpen ? <X className="w-6 h-6 sm:w-7 sm:h-7" /> : <Radio className="w-6 h-6 sm:w-7 sm:h-7 group-hover:animate-pulse" />}
             </button>
          </motion.div>
       )}
@@ -427,36 +457,36 @@ const PostCard = ({ post }: { post: any }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-[#0a0a0a] p-6 rounded-[2.5rem] border border-white/5 hover:border-white/10 transition-all shadow-lg group relative"
+    className="bg-[#0a0a0a] p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border border-white/5 hover:border-white/10 transition-all shadow-lg group relative"
   >
     <div className="flex items-center justify-between mb-5">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-blue-400 text-lg overflow-hidden shadow-xl group-hover:scale-105 transition-transform">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[1rem] sm:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-blue-400 text-base overflow-hidden shadow-xl group-hover:scale-105 transition-transform shrink-0">
           {post.avatar_url ? <img src={post.avatar_url} className="w-full h-full object-cover" alt="" /> : (post.username?.[0] || 'U')}
         </div>
         <div>
-          <h4 className="font-black text-white text-base italic tracking-tighter leading-none mb-1 group-hover:text-blue-400 transition-colors">@{post.username}</h4>
+          <h4 className="font-black text-white text-sm sm:text-base italic tracking-tighter leading-none mb-1 group-hover:text-blue-400 transition-colors">@{post.username}</h4>
           <div className="flex items-center gap-2 opacity-50">
              <Clock className="w-3 h-3 text-gray-500" />
-             <p className="text-gray-500 text-[8px] font-black uppercase tracking-[0.2em]">{new Date(post.created_at).toLocaleDateString()} // {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+             <p className="text-gray-500 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em]">{new Date(post.created_at).toLocaleDateString()} // {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="hidden sm:flex items-center gap-2">
          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]" />
          <span className="text-[7px] font-black text-gray-700 uppercase tracking-widest">Active Node</span>
       </div>
     </div>
     <p className="text-gray-300 text-sm mb-6 leading-relaxed font-medium px-1 whitespace-pre-wrap">{post.content}</p>
-    <div className="flex items-center gap-8 text-gray-600 border-t border-white/5 pt-5 px-1">
-       <button className="flex items-center gap-2 hover:text-pink-500 transition-all text-[8px] font-black uppercase tracking-widest group/btn">
-          <Heart className="w-4 h-4 group-hover/btn:scale-110 transition-transform" /> 1.2k
+    <div className="flex items-center gap-6 sm:gap-8 text-gray-600 border-t border-white/5 pt-5 px-1">
+       <button className="flex items-center gap-2 hover:text-pink-500 transition-all text-[7px] sm:text-[8px] font-black uppercase tracking-widest group/btn">
+          <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover/btn:scale-110 transition-transform" /> 1.2k
        </button>
-       <button className="flex items-center gap-2 hover:text-blue-500 transition-all text-[8px] font-black uppercase tracking-widest group/btn">
-          <MessageSquare className="w-4 h-4 group-hover/btn:scale-110 transition-transform" /> 48
+       <button className="flex items-center gap-2 hover:text-blue-500 transition-all text-[7px] sm:text-[8px] font-black uppercase tracking-widest group/btn">
+          <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover/btn:scale-110 transition-transform" /> 48
        </button>
-       <button className="ml-auto flex items-center gap-2 hover:text-white transition-all text-[8px] font-black uppercase tracking-widest group/btn">
-          <Share2 className="w-4 h-4" /> Propagate
+       <button className="ml-auto flex items-center gap-2 hover:text-white transition-all text-[7px] sm:text-[8px] font-black uppercase tracking-widest group/btn">
+          <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Propagate
        </button>
     </div>
   </motion.div>

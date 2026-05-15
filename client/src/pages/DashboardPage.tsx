@@ -90,41 +90,41 @@ export const DashboardPage = () => {
   ];
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-10 pb-8 sm:pb-20">
       {/* Top Layer: Greeting & Status Pulse */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="lg:col-span-8 relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-6 md:p-10 shadow-2xl group"
+          className="lg:col-span-8 relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 sm:p-10 shadow-2xl group"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none transition-transform duration-1000 group-hover:scale-110">
-            <Sparkles className="w-64 h-64 text-blue-500" />
+            <Sparkles className="w-48 h-48 sm:w-64 sm:h-64 text-blue-500" />
           </div>
           <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full" />
           
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
-              <Zap className="w-3.5 h-3.5 fill-current" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-6 sm:mb-8">
+              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
               <span>Neural Interface: Active</span>
             </div>
             
-            <h1 className="text-3xl md:text-6xl font-black text-white mb-4 tracking-tighter leading-none">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter leading-none">
               {greeting}, <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 italic">
                 {user?.username || 'Explorer'}
               </span>
             </h1>
             
-            <p className="text-gray-500 text-base max-w-md mb-8 font-medium leading-relaxed">
+            <p className="text-gray-500 text-xs sm:text-sm md:text-base max-w-md mb-8 font-medium leading-relaxed">
               System diagnostics report stable connectivity. Your sonic profile has synchronized with <span className="text-white">{linkedAccounts.length} archives</span>.
             </p>
 
-            <div className="flex gap-4">
-               <Link to="/discover" className="px-6 py-2.5 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-white/5">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+               <Link to="/discover" className="px-6 py-4 sm:py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-white/5 text-center">
                   Begin Exploration
                </Link>
-               <button onClick={openSyncModal} className="px-6 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+               <button onClick={openSyncModal} className="px-6 py-4 sm:py-3 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all text-center">
                   Sync Neural Grid
                </button>
             </div>
@@ -135,7 +135,7 @@ export const DashboardPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-4 bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 p-6 md:p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden group"
+          className="lg:col-span-4 bg-[#0a0a0a] rounded-[2rem] sm:rounded-[2.5rem] border border-white/5 p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden group min-h-[250px] lg:min-h-0"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-blue-600/5 to-transparent" />
           
@@ -174,18 +174,18 @@ export const DashboardPage = () => {
       </div>
 
       {/* Middle Layer: Bento Quick Access & Platform Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link 
           to="/catalog"
-          className="md:col-span-2 group relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-blue-800 p-6 shadow-2xl transition-all hover:scale-[1.02]"
+          className="sm:col-span-2 group relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-blue-800 p-8 shadow-2xl transition-all hover:scale-[1.02]"
         >
            <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-700">
               <LayoutGrid className="w-24 h-24 text-white" />
            </div>
-           <div className="relative z-10 flex flex-col h-full justify-between min-h-[120px]">
+           <div className="relative z-10 flex flex-col h-full justify-between min-h-[160px]">
               <div>
                  <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white mb-4">Identity Core</span>
-                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Synchronized <br /> Library.</h3>
+                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-tight">Synchronized <br /> Library.</h3>
               </div>
               <p className="text-indigo-100/60 text-sm font-medium">Access all archived signals from a single node.</p>
            </div>
@@ -193,17 +193,19 @@ export const DashboardPage = () => {
 
         <Link 
           to="/map"
-          className="group relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-6 shadow-2xl transition-all hover:border-blue-500/30"
+          className="group relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 shadow-2xl transition-all hover:border-blue-500/30 min-h-[200px] flex flex-col justify-end"
         >
-           <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-4 group-hover:scale-110 transition-transform">
-              <MapIcon className="w-5 h-5" />
+           <div className="absolute top-6 left-8 w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-4 group-hover:scale-110 transition-transform">
+              <MapIcon className="w-6 h-6" />
            </div>
-           <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mb-2">Sonic Map</h3>
-           <p className="text-gray-500 text-[10px] font-medium leading-relaxed mb-4">Locate signal origins across the global verse.</p>
-           <ArrowRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-all group-hover:translate-x-1" />
+           <div>
+              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Sonic Map</h3>
+              <p className="text-gray-500 text-[10px] font-medium leading-relaxed mb-4">Locate signal origins across the global verse.</p>
+              <ArrowRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-all group-hover:translate-x-1" />
+           </div>
         </Link>
 
-        <div className="bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 p-6 shadow-2xl flex flex-col justify-between group">
+        <div className="bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 p-8 shadow-2xl flex flex-col justify-between group min-h-[200px]">
            <div>
               <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-4">Archive Status</p>
               <div className="space-y-3">
@@ -231,23 +233,23 @@ export const DashboardPage = () => {
 
       {/* Bottom Layer: Neural Insights (Detailed Grid) */}
       <section className="space-y-6">
-        <div className="flex items-center justify-between px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/5 rounded-xl border border-white/10">
+            <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 shrink-0">
                <Sparkles className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-               <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Neural Insights</h2>
+               <h2 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">Neural Insights</h2>
                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Algorithmic Resonances detected from your archives</p>
             </div>
           </div>
-          <button onClick={fetchRecommendations} className="p-2.5 rounded-full bg-white/5 border border-white/5 text-gray-500 hover:text-white transition-all">
+          <button onClick={fetchRecommendations} className="self-start sm:self-auto p-3 rounded-full bg-white/5 border border-white/5 text-gray-500 hover:text-white transition-all">
              <TrendingUp className="w-5 h-5" />
           </button>
         </div>
         
         {(!isSpotifyLinked && !isYoutubeLinked) ? (
-          <div className="bg-[#0a0a0a] p-12 rounded-[2.5rem] border border-white/5 flex flex-col items-center text-center relative overflow-hidden shadow-2xl">
+          <div className="bg-[#0a0a0a] p-8 md:p-16 rounded-[2.5rem] border border-white/5 flex flex-col items-center text-center relative overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.05)_0%,_transparent_70%)]" />
             <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-8 border border-blue-500/20 relative z-10 shadow-2xl shadow-blue-500/10">
               <Link2 className="w-8 h-8 text-blue-500" />
@@ -256,17 +258,17 @@ export const DashboardPage = () => {
             <p className="text-gray-500 text-sm max-w-sm mb-10 font-medium leading-relaxed relative z-10">
               Establish synchronization with your external streaming archives to allow the neural engine to map your audio identity.
             </p>
-            <div className="flex gap-6 relative z-10">
+            <div className="flex flex-col sm:flex-row gap-6 relative z-10 w-full sm:w-auto">
               <button 
                 onClick={openSyncModal}
-                className="px-12 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl shadow-white/5 flex items-center gap-3"
+                className="px-12 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl shadow-white/5 flex items-center justify-center gap-3"
               >
                 <Zap className="w-4 h-4 fill-current" /> Establish Archive Link
               </button>
             </div>
           </div>
         ) : loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {[1, 2, 3, 4, 5, 6].map((num) => (
               <div key={num} className="bg-[#0a0a0a] aspect-square rounded-[1.5rem] border border-white/5 flex flex-col items-center justify-center gap-3 animate-pulse">
                 <div className="w-8 h-8 rounded-full border-2 border-white/5 border-t-blue-500 animate-spin" />
@@ -274,7 +276,7 @@ export const DashboardPage = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 px-2 sm:px-0">
             {recommendations.map((track, idx) => (
               <motion.div 
                 key={track.id} 
@@ -288,7 +290,7 @@ export const DashboardPage = () => {
                 
                 <div className="relative aspect-square w-full mb-3 overflow-hidden rounded-[1rem] shadow-xl">
                   <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                  <div className="absolute inset-0 bg-black/80 via-transparent to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
                     <button 
                       onClick={() => setSong(track, recommendations)}
                       className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-2xl"

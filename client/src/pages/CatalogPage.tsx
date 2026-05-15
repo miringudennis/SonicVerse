@@ -39,11 +39,11 @@ const PhoneSection = ({ title, icon: Icon, children, color, onBack }: any) => (
     initial={{ opacity: 0, scale: 0.9, y: 20 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-    className="flex flex-col h-[700px] w-full max-w-[500px] mx-auto bg-[#0a0a0a] rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden relative group"
+    className="flex flex-col h-[600px] sm:h-[700px] w-full max-w-[500px] mx-auto bg-[#0a0a0a] rounded-[2.5rem] sm:rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden relative group"
   >
     <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${color} opacity-50`} />
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="p-8 pb-4 flex items-center justify-between">
+      <div className="p-6 sm:p-8 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
            <button 
              onClick={onBack}
@@ -60,7 +60,7 @@ const PhoneSection = ({ title, icon: Icon, children, color, onBack }: any) => (
            </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-8 pb-12 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-12 custom-scrollbar">
         {children}
       </div>
     </div>
@@ -310,7 +310,7 @@ export const CatalogPage = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto pb-20 px-4">
+    <div className="max-w-7xl mx-auto pb-10 sm:pb-20 px-4">
       <AnimatePresence mode="wait">
         {view === 'welcome' ? (
           <motion.div 
@@ -319,39 +319,39 @@ export const CatalogPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <section className="text-center mb-10 relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12">
+            <section className="text-center mb-10 relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-16">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(99,102,241,0.05)_0%,_transparent_70%)]" />
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6 relative z-10">
                     <Library className="w-3 h-3" />
                     <span>Neural Catalog Access Protocol</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-6 relative z-10">
-                    Neural <br /> Archives.
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none mb-6 relative z-10">
+                    Neural <br className="sm:hidden" /> Archives.
                 </h1>
-                <p className="text-gray-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed relative z-10">
+                <p className="text-gray-400 text-sm md:text-lg max-w-2xl mx-auto font-medium leading-relaxed relative z-10">
                     Access your synchronized archives from across the streaming universe. SonicVerse synthesizes your libraries into a unified modular catalog.
                 </p>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {platforms.map((p) => (
                     <motion.div 
                       key={p.id} 
                       whileHover={{ y: -6 }}
                       onClick={() => handlePlatformSelect(p)}
-                      className="group relative bg-[#0a0a0a] p-6 rounded-[2rem] border border-white/5 hover:border-white/20 transition-all cursor-pointer overflow-hidden shadow-lg"
+                      className="group relative bg-[#0a0a0a] p-8 rounded-[2rem] border border-white/5 hover:border-white/20 transition-all cursor-pointer overflow-hidden shadow-lg"
                     >
                         <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${p.gradient} opacity-0 blur-[50px] rounded-full group-hover:opacity-20 transition-opacity duration-700`} />
                         
-                        <div className="w-12 h-12 rounded-[1rem] bg-white/5 flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-8 border border-white/10 group-hover:scale-110 transition-transform">
                             <p.icon className={`w-6 h-6 ${p.accent}`} />
                         </div>
                         
-                        <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tighter flex items-center justify-between">
+                        <h3 className="text-xl font-black text-white uppercase italic mb-3 tracking-tighter flex items-center justify-between">
                             {p.name}
                             <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white transition-colors" />
                         </h3>
-                        <p className="text-gray-500 text-xs font-medium leading-relaxed mb-6">{p.desc}</p>
+                        <p className="text-gray-500 text-xs font-medium leading-relaxed mb-8">{p.desc}</p>
                         
                         {p.linked ? (
                             <div className="flex items-center gap-2 text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">
@@ -804,54 +804,54 @@ export const CatalogPage = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="max-w-4xl mx-auto space-y-16"
+            className="max-w-4xl mx-auto space-y-12 sm:space-y-16"
           >
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-10">
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-6 sm:gap-10">
               <button 
                 onClick={() => setView('dashboard')}
-                className="w-16 h-16 rounded-full bg-[#0a0a0a] border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all shadow-2xl shrink-0 group"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#0a0a0a] border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all shadow-2xl shrink-0 group self-start md:self-auto"
               >
                 <ArrowLeft className="w-6 h-6 text-white group-hover:-translate-x-1 transition-transform" />
               </button>
-              <div className="flex-1 text-center md:text-left">
+              <div className="flex-1 text-center md:text-left w-full">
                 <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
-                  <Mic2 className={`w-5 h-5 ${activePlatform === 'spotify' ? 'text-green-500' : 'text-red-500'}`} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Artist Module Detected</span>
+                  <Mic2 className={`w-4 h-4 sm:w-5 sm:h-5 ${activePlatform === 'spotify' ? 'text-green-500' : 'text-red-500'}`} />
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Artist Module Detected</span>
                 </div>
-                <h1 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter italic leading-none">{selectedArtist?.name}</h1>
+                <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white uppercase tracking-tighter italic leading-none break-words">{selectedArtist?.name}</h1>
               </div>
             </div>
 
             {artistLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 bg-[#0a0a0a] rounded-[3.5rem] border border-white/5">
-                <div className="w-12 h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
+              <div className="flex flex-col items-center justify-center py-20 bg-[#0a0a0a] rounded-[2.5rem] sm:rounded-[3.5rem] border border-white/5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
               </div>
             ) : discography ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16">
                 <section>
-                  <div className="flex items-center gap-4 mb-10">
-                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
-                      <TrendingUp className="w-6 h-6 text-blue-500" />
+                  <div className="flex items-center gap-4 mb-8 sm:mb-10">
+                    <div className="p-2.5 sm:p-3 bg-white/5 rounded-2xl border border-white/10">
+                      <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
                     </div>
-                    <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">High Resonance</h2>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">High Resonance</h2>
                   </div>
                   <div className="space-y-4">
                     {discography.top_tracks?.map((track: any, i: number) => (
                       <div 
                         key={track.id} 
                         onClick={() => playSong(track, discography.top_tracks)}
-                        className="flex items-center gap-5 p-5 bg-[#0a0a0a] rounded-[2rem] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-xl"
+                        className="flex items-center gap-4 sm:gap-5 p-4 sm:p-5 bg-[#0a0a0a] rounded-[1.5rem] sm:rounded-[2rem] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-xl"
                       >
-                        <span className="text-xs font-black text-gray-700 w-4 group-hover:text-blue-500 transition-colors">{i + 1}</span>
-                        <img src={track.cover_url} className="w-14 h-14 rounded-[1.25rem] object-cover shadow-lg" alt="" />
+                        <span className="text-[10px] sm:text-xs font-black text-gray-700 w-4 group-hover:text-blue-500 transition-colors">{i + 1}</span>
+                        <img src={track.cover_url} className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] object-cover shadow-lg" alt="" />
                         <div className="flex-1 overflow-hidden">
-                          <h4 className="font-bold text-white text-sm truncate uppercase tracking-tighter">{track.title}</h4>
-                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">
+                          <h4 className="font-bold text-white text-xs sm:text-sm truncate uppercase tracking-tighter">{track.title}</h4>
+                          <p className="text-[9px] sm:text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">
                             {track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${(Math.floor((track.duration_ms % 60000) / 1000)).toString().padStart(2, '0')}` : 'N/A'}
                           </p>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl">
-                           <Play className="w-5 h-5 fill-current ml-0.5" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-black flex items-center justify-center opacity-0 sm:group-hover:opacity-100 transition-all shadow-xl shrink-0">
+                           <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />
                         </div>
                       </div>
                     ))}
@@ -859,30 +859,30 @@ export const CatalogPage = () => {
                 </section>
 
                 <section>
-                  <div className="flex items-center gap-4 mb-10">
-                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
-                      <Disc className="w-6 h-6 text-purple-500" />
+                  <div className="flex items-center gap-4 mb-8 sm:mb-10">
+                    <div className="p-2.5 sm:p-3 bg-white/5 rounded-2xl border border-white/10">
+                      <Disc className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
                     </div>
-                    <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Archived Nodes</h2>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">Archived Nodes</h2>
                   </div>
-                  <div className="grid grid-cols-2 gap-8">
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8">
                     {discography.albums?.map((album: any) => (
                       <motion.div 
                         key={album.id} 
                         whileHover={{ y: -8 }}
                         onClick={() => handleAlbumClick(album)}
-                        className="group cursor-pointer bg-[#0a0a0a] p-4 rounded-[2.5rem] border border-white/5 hover:border-white/20 transition-all shadow-xl"
+                        className="group cursor-pointer bg-[#0a0a0a] p-3 sm:p-4 rounded-[2rem] sm:rounded-[2.5rem] border border-white/5 hover:border-white/20 transition-all shadow-xl"
                       >
-                        <div className="relative aspect-square rounded-[1.75rem] overflow-hidden mb-5 shadow-2xl border border-white/5">
-                          <img src={album.cover_url} className="w-full h-full object-cover group-hover:scale-110 transition duration-1000" alt="" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Disc className="w-16 h-16 text-white/30 animate-spin-slow" />
+                        <div className="relative aspect-square rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden mb-4 sm:mb-5 shadow-2xl border border-white/5">
+                          <img src={album.cover_url} className="w-full h-full object-cover sm:group-hover:scale-110 transition duration-1000" alt="" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Disc className="w-12 h-12 sm:w-16 sm:h-16 text-white/30 animate-spin-slow" />
                           </div>
                         </div>
-                        <h4 className="font-black text-sm text-white truncate uppercase tracking-tighter italic mb-1 px-1">{album.title}</h4>
+                        <h4 className="font-black text-[10px] sm:text-sm text-white truncate uppercase tracking-tighter italic mb-1 px-1">{album.title}</h4>
                         <div className="flex items-center justify-between px-1">
-                          <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest">{album.release_date ? new Date(album.release_date).getFullYear() : 'N/A'}</p>
-                          <span className="px-2 py-0.5 bg-white/5 rounded text-[8px] text-gray-700 font-black uppercase tracking-widest border border-white/5">{album.type}</span>
+                          <p className="text-[8px] sm:text-[10px] text-gray-600 font-black uppercase tracking-widest">{album.release_date ? new Date(album.release_date).getFullYear() : 'N/A'}</p>
+                          <span className="px-1.5 sm:px-2 py-0.5 bg-white/5 rounded text-[7px] sm:text-[8px] text-gray-700 font-black uppercase tracking-widest border border-white/5">{album.type}</span>
                         </div>
                       </motion.div>
                     ))}
@@ -901,63 +901,63 @@ export const CatalogPage = () => {
           >
              <button 
                 onClick={() => setView(selectedArtist ? 'artist-detail' : 'dashboard')}
-                className="mb-12 flex items-center gap-3 text-gray-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.3em] group"
+                className="mb-8 sm:mb-12 flex items-center gap-3 text-gray-500 hover:text-white transition-colors text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] group"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
               </button>
 
-              <div className="flex flex-col md:flex-row gap-16 items-end mb-20">
-                 <div className="w-full md:w-80 aspect-square rounded-[3.5rem] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10 shrink-0 relative group">
-                    <img src={selectedAlbum?.cover_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="" />
+              <div className="flex flex-col md:flex-row gap-8 sm:gap-16 items-center md:items-end mb-12 sm:mb-20">
+                 <div className="w-64 sm:w-80 aspect-square rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)] border border-white/10 shrink-0 relative group">
+                    <img src={selectedAlbum?.cover_url} className="w-full h-full object-cover sm:group-hover:scale-105 transition-transform duration-1000" alt="" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                  </div>
-                 <div className="flex-1 pb-4">
-                    <div className="flex items-center gap-3 mb-6">
-                       <span className="px-4 py-1.5 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-xl">
+                 <div className="flex-1 pb-4 text-center md:text-left">
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-6">
+                       <span className="px-3 sm:px-4 py-1.5 bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-xl">
                           {selectedAlbum?.type || 'Album'}
                        </span>
                        {selectedAlbum?.release_date && (
-                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/5">
+                         <span className="text-[9px] sm:text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-white/5 rounded-full border border-white/5">
                             <Calendar className="w-3 h-3" /> {new Date(selectedAlbum.release_date).getFullYear()}
                          </span>
                        )}
                     </div>
-                    <h1 className="text-6xl md:text-[5.5rem] font-black text-white uppercase italic tracking-tighter leading-[0.85] mb-8">{selectedAlbum?.title}</h1>
-                    <div className="flex items-center gap-6">
+                    <h1 className="text-4xl sm:text-6xl md:text-[5.5rem] font-black text-white uppercase italic tracking-tighter leading-[0.85] mb-8 break-words">{selectedAlbum?.title}</h1>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                        <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
                              <Users className="w-4 h-4 text-gray-500" />
                           </div>
-                          <span className="text-xl font-black text-white uppercase italic tracking-tighter">{selectedAlbum?.artist_name}</span>
+                          <span className="text-lg sm:text-xl font-black text-white uppercase italic tracking-tighter">{selectedAlbum?.artist_name}</span>
                        </div>
-                       <div className="h-6 w-px bg-white/10" />
-                       <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">{albumTracks?.tracks?.length || 0} Signal Nodes</span>
+                       <div className="hidden sm:block h-6 w-px bg-white/10" />
+                       <span className="text-[9px] sm:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">{albumTracks?.tracks?.length || 0} Signal Nodes</span>
                     </div>
                  </div>
               </div>
 
               {albumLoading ? (
-                <div className="flex flex-col items-center justify-center py-32 bg-[#0a0a0a] rounded-[3.5rem] border border-white/5">
-                   <div className="w-12 h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
+                <div className="flex flex-col items-center justify-center py-24 sm:py-32 bg-[#0a0a0a] rounded-[2.5rem] sm:rounded-[3.5rem] border border-white/5">
+                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
                 </div>
               ) : (
-                <div className="bg-[#0a0a0a] rounded-[3.5rem] border border-white/5 overflow-hidden backdrop-blur-3xl shadow-2xl">
-                   <div className="px-10 py-8 border-b border-white/5 flex items-center justify-between bg-white/5">
-                      <div className="flex items-center gap-5">
+                <div className="bg-[#0a0a0a] rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 overflow-hidden backdrop-blur-3xl shadow-2xl">
+                   <div className="px-6 sm:px-10 py-6 sm:py-8 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/5">
+                      <div className="flex items-center gap-4 sm:gap-5">
                          <button 
                             onClick={() => playSong(albumTracks?.tracks?.[0], albumTracks.tracks)}
-                            className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-xl hover:scale-110 transition-transform"
+                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white text-black flex items-center justify-center shadow-xl hover:scale-110 transition-transform shrink-0"
                          >
-                            <Play className="w-7 h-7 fill-current ml-1" />
+                            <Play className="w-6 h-6 sm:w-7 sm:h-7 fill-current ml-1" />
                          </button>
-                         <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Temporal Sequence</h3>
+                         <h3 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-tighter">Temporal Sequence</h3>
                       </div>
                       <div className="flex items-center gap-6">
-                         <div className="p-3 bg-white/5 rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all">
-                            <RefreshCcw className="w-5 h-5 text-gray-500" />
+                         <div className="p-2.5 sm:p-3 bg-white/5 rounded-xl sm:rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all">
+                            <RefreshCcw className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                          </div>
-                         <div className="p-3 bg-white/5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/10 transition-all">
-                            <Heart className="w-5 h-5 text-gray-500 hover:text-red-500 transition-colors" />
+                         <div className="p-2.5 sm:p-3 bg-white/5 rounded-xl sm:rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all">
+                            <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 hover:text-red-500 transition-colors" />
                          </div>
                       </div>
                    </div>
@@ -966,20 +966,20 @@ export const CatalogPage = () => {
                         <div 
                           key={track.id} 
                           onClick={() => playSong(track, albumTracks.tracks)}
-                          className="px-10 py-6 flex items-center justify-between hover:bg-white/5 transition-all cursor-pointer group"
+                          className="px-6 sm:px-10 py-4 sm:py-6 flex items-center justify-between hover:bg-white/5 transition-all cursor-pointer group"
                         >
-                           <div className="flex items-center gap-10">
-                              <span className="text-xs font-black text-gray-800 w-4 group-hover:text-white transition-colors tracking-tighter">{i + 1}</span>
+                           <div className="flex items-center gap-6 sm:gap-10 min-w-0">
+                              <span className="text-[10px] sm:text-xs font-black text-gray-800 w-4 group-hover:text-white transition-colors tracking-tighter shrink-0">{i + 1}</span>
                               <div className="min-w-0">
-                                 <p className="font-black text-white text-lg group-hover:text-blue-400 transition-colors uppercase tracking-tighter italic leading-none mb-1">{track.title}</p>
-                                 <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em]">{track.artist_name}</p>
+                                 <p className="font-black text-white text-sm sm:text-lg group-hover:text-blue-400 transition-colors uppercase tracking-tighter italic leading-none mb-1 truncate">{track.title}</p>
+                                 <p className="text-[8px] sm:text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] truncate">{track.artist_name}</p>
                               </div>
                            </div>
-                           <div className="flex items-center gap-8">
-                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                           <div className="flex items-center gap-4 sm:gap-8 shrink-0">
+                             <div className="hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Link2 className="w-4 h-4 text-gray-700" />
                              </div>
-                             <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest tabular-nums w-12 text-right">
+                             <span className="text-[9px] sm:text-[10px] font-black text-gray-700 uppercase tracking-widest tabular-nums w-10 sm:w-12 text-right">
                                {track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${(Math.floor((track.duration_ms % 60000) / 1000)).toString().padStart(2, '0')}` : 'N/A'}
                              </span>
                            </div>

@@ -184,26 +184,26 @@ export const Player = () => {
 
       <div 
         onClick={() => !isFullScreen && setFullScreen(true)}
-        className="fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/80 backdrop-blur-3xl border-t border-white/10 text-white p-4 flex items-center justify-between z-[1000] cursor-pointer shadow-[0_-20px_40px_rgba(0,0,0,0.5)]"
+        className="fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-3xl border-t border-white/10 text-white px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between z-[1000] cursor-pointer shadow-[0_-20px_40px_rgba(0,0,0,0.5)]"
       >
-        <div className="flex items-center gap-4 w-1/3">
+        <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
           <motion.div 
             layoutId="player-art-mini"
-            className="w-14 h-14 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(59,130,246,0.2)] relative group cursor-pointer"
-            onClick={() => !isFullScreen && setFullScreen(true)}
+            className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(59,130,246,0.2)] relative group cursor-pointer shrink-0"
           >
             <img src={currentSong.cover_url} alt={currentSong.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <ChevronDown className="w-6 h-6 text-white rotate-180" />
             </div>
           </motion.div>
           <div className="truncate">
-            <h4 className="font-black text-white text-sm uppercase italic tracking-tighter truncate">{currentSong.title}</h4>
-            <p className="text-blue-500 text-[10px] font-black uppercase tracking-[0.15em] truncate">{currentSong.artist_name}</p>
+            <h4 className="font-black text-white text-xs sm:text-sm uppercase italic tracking-tighter truncate">{currentSong.title}</h4>
+            <p className="text-blue-500 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] truncate">{currentSong.artist_name}</p>
           </div>
         </div>
 
-        <div className="hidden md:flex flex-col items-center gap-2 flex-1 max-w-xl" onClick={(e) => e.stopPropagation()}>
+        {/* Desktop Controls */}
+        <div className="hidden md:flex flex-col items-center gap-2 flex-1 max-w-xl mx-8" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-6">
             <SkipBack onClick={previous} className="w-4 h-4 cursor-pointer text-gray-500 hover:text-blue-400 transition-colors" />
             <button 
@@ -227,7 +227,19 @@ export const Player = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-1/3 justify-end" onClick={(e) => e.stopPropagation()}>
+        {/* Mobile Controls */}
+        <div className="flex md:hidden items-center gap-4" onClick={(e) => e.stopPropagation()}>
+          <button 
+            onClick={togglePlay}
+            className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black active:scale-90 transition-all shadow-lg"
+          >
+            {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-0.5 fill-current" />}
+          </button>
+          <SkipForward onClick={next} className="w-6 h-6 text-white active:scale-90 transition-all" />
+        </div>
+
+        {/* Desktop Volume */}
+        <div className="hidden md:flex items-center gap-3 w-1/3 justify-end" onClick={(e) => e.stopPropagation()}>
           <Volume2 className="w-4 h-4 text-gray-500" />
           <input 
             type="range"

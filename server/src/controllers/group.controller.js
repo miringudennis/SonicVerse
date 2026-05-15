@@ -31,13 +31,28 @@ exports.getGroups = async (req, res) => {
 
   try {
     const result = await db.query(
-      `SELECT g.*, gm.role, gm.status, gm.joined_at
+      `SELECT g.*, gm.role, gm.status, gm.joined_at, gm.last_read_at,
+       (SELECT COUNT(*) FROM group_messages WHERE group_id = g.id AND created_at > gm.last_read_at AND sender_id != $1) as unread_count
        FROM groups g
        JOIN group_members gm ON g.id = gm.group_id
        WHERE gm.user_id = $1`,
       [userId]
     );
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.markRead = async (req, res) => {
+  const { groupId } = req.params;
+  const userId = req.user.id;
+  try {
+    await db.query(
+      'UPDATE group_members SET last_read_at = CURRENT_TIMESTAMP WHERE group_id = $1 AND user_id = $2',
+      [groupId, userId]
+    );
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

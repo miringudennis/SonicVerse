@@ -13,6 +13,7 @@ router.delete('/:groupId', authMiddleware, groupController.deleteGroup);
 router.get('/:groupId/members', authMiddleware, groupController.getGroupMembers);
 router.post('/messages', authMiddleware, groupController.sendMessage);
 router.get('/:groupId/messages', authMiddleware, groupController.getMessages);
+router.post('/:groupId/read', authMiddleware, groupController.markRead);
 
 router.put('/update', authMiddleware, groupController.updateGroup);
 router.delete('/messages/:messageId', authMiddleware, groupController.deleteMessage);

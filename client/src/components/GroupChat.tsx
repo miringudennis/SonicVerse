@@ -61,6 +61,16 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
       setTypingUsers((prev) => prev.filter((u) => u !== username));
     });
 
+    const markAsRead = async () => {
+      try {
+        await api.post(`/groups/${group.id}/read`);
+      } catch (err) {
+        console.error('Failed to mark group as read', err);
+      }
+    };
+
+    markAsRead();
+
     return () => {
       newSocket.disconnect();
     };
@@ -224,7 +234,7 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
   };
 
   return (
-    <div className="flex flex-col h-full md:h-[750px] fixed inset-0 z-[60] md:relative md:inset-auto bg-[#0a0a0a] md:rounded-[2.5rem] border-0 md:border md:border-white/5 overflow-hidden shadow-2xl transition-all duration-500">
+    <div className="flex flex-col h-full w-full bg-[#0a0a0a] md:rounded-[2.5rem] border-0 md:border md:border-white/5 overflow-hidden shadow-2xl transition-all duration-500 relative">
        {/* Wallpaper Background */}
        {group.wallpaper_url && (
          <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
@@ -272,38 +282,40 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
             const replyTo = messages.find(msg => msg.id === m.reply_to_id);
 
             return (
-              <div key={m.id || i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group/msg`}>
-                 <div className="flex items-center gap-2 mb-1.5 px-1">
-                    {!isMe && <span className={`text-[8px] font-black uppercase ${getUserColor(m.username)}`}>@{m.username}</span>}
-                    <span className="text-[7px] text-gray-600 font-black uppercase">{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                 </div>
-                 
-                 <div className="flex items-start gap-2 max-w-[85%]">
-                    {isMe && (
-                       <button 
-                         onClick={() => handleDeleteMessage(m.id)}
-                         className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-600 hover:text-red-500 transition-all self-center"
-                       >
-                          <Trash2 className="w-3 h-3" />
-                       </button>
+              <div key={m.id || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4 group/msg`}>
+                 <div className={`flex max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
+                    {/* Avatar */}
+                    {!isMe && (
+                       <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-lg mb-1">
+                          {m.avatar_url ? <img src={m.avatar_url} className="w-full h-full object-cover" /> : <span className="text-[10px] font-bold text-white uppercase">{m.username[0]}</span>}
+                       </div>
                     )}
-                    
+
                     <div className="flex flex-col">
                        {replyTo && (
                           <div className={`mb-1 p-2 rounded-xl text-[10px] bg-white/5 border-l-2 border-blue-500 text-gray-500 truncate max-w-xs ${isMe ? 'self-end' : 'self-start'}`}>
-                             <span className="font-black">@{replyTo.username}:</span> {replyTo.content}
+                             <span className="font-black text-blue-500">@{replyTo.username}:</span> {replyTo.content}
                           </div>
                        )}
-                       <div className={`p-4 rounded-3xl text-sm leading-relaxed relative ${
+                       
+                       <div className={`relative px-4 py-2.5 rounded-2xl shadow-lg ${
                           isMe 
-                            ? 'bg-blue-600 text-white rounded-tr-none shadow-[0_4px_15px_rgba(37,99,235,0.3)]' 
-                            : 'bg-white/5 border border-white/10 text-gray-300 rounded-tl-none'
+                            ? 'bg-blue-600/40 backdrop-blur-md text-white rounded-tr-none border border-blue-500/30' 
+                            : 'bg-[#1a1a1a]/80 backdrop-blur-md text-gray-200 rounded-tl-none border border-white/5'
                        }`}>
+                          {/* Sender Name (for others) */}
+                          {!isMe && (
+                             <div className={`text-[11px] font-bold mb-1 ${getUserColor(m.username)} brightness-125`}>
+                                {m.username}
+                             </div>
+                          )}
+
+                          {/* Media Content */}
                           {m.media_type === 'image' && (
-                             <img src={m.media_url} className="rounded-2xl mb-2 max-w-full border border-white/10" alt="" />
+                             <img src={m.media_url} className="rounded-lg mb-2 max-w-full border border-white/10" alt="" />
                           )}
                           {m.media_type === 'video' && (
-                             <video src={m.media_url} controls className="rounded-2xl mb-2 max-w-full border border-white/10" />
+                             <video src={m.media_url} controls className="rounded-lg mb-2 max-w-full border border-white/10" />
                           )}
                           {m.media_type === 'document' && (
                              <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-black/20 rounded-xl mb-2 hover:bg-black/40 transition-all border border-white/5">
@@ -311,18 +323,39 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                                 <span className="text-[10px] font-black uppercase tracking-widest">Open Document</span>
                              </a>
                           )}
-                          <div className="font-medium whitespace-pre-wrap">{renderContent(m.content)}</div>
+
+                          {/* Message Content & Timestamp */}
+                          <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
+                             <div className="text-[14px] leading-relaxed break-words max-w-full font-medium">
+                                {renderContent(m.content)}
+                             </div>
+                             <div className="ml-auto flex items-center gap-1 mt-1">
+                                <span className={`text-[9px] font-medium uppercase tracking-tighter ${isMe ? 'text-blue-100 opacity-70' : 'text-gray-500 opacity-60'}`}>
+                                   {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {isMe && <Check className="w-3 h-3 text-white opacity-80" />}
+                             </div>
+                          </div>
                        </div>
                     </div>
 
-                    {!isMe && (
+                    {/* Actions on hover */}
+                    <div className={`flex flex-col gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity mb-2 ${isMe ? 'mr-1' : 'ml-1'}`}>
                        <button 
                          onClick={() => setReplyingTo(m)}
-                         className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-600 hover:text-blue-500 transition-all self-center"
+                         className="p-1.5 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
                        >
                           <Reply className="w-3 h-3" />
                        </button>
-                    )}
+                       {isMe && (
+                          <button 
+                            onClick={() => handleDeleteMessage(m.id)}
+                            className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/5 rounded-full transition-all"
+                          >
+                             <Trash2 className="w-3 h-3" />
+                          </button>
+                       )}
+                    </div>
                  </div>
               </div>
             );
