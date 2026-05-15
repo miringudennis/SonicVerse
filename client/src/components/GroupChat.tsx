@@ -29,7 +29,6 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
   const [group, setGroup] = useState(initialGroup);
   const [messages, setMessages] = useState<any[]>([]);
   const [content, setContent] = useState('');
-  const [showInvite, setShowInvite] = useState(false);
   const [inviteQuery, setInviteQuery] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [members, setMembers] = useState<any[]>([]);

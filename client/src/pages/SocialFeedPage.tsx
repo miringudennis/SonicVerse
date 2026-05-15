@@ -20,7 +20,6 @@ export const SocialFeedPage = () => {
   const [content, setContent] = useState('');
   const [groupName, setGroupName] = useState('');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [showPostModal, setShowPostModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const createGroupRef = useRef<HTMLDivElement>(null);
 
