@@ -117,7 +117,7 @@ export const NotificationsDropdown = () => {
                                {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
 
-                            {n.type === 'group_invite' && (
+                            {n.type === 'group_invite' && !n.data.status && (
                               <div className="flex gap-2 mt-3">
                                  <button 
                                    onClick={() => handleRespondToInvite(n.data.group_id, true)}
@@ -131,6 +131,16 @@ export const NotificationsDropdown = () => {
                                  >
                                     Decline
                                  </button>
+                              </div>
+                            )}
+
+                            {n.type === 'group_invite' && n.data.status && (
+                              <div className="mt-2">
+                                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
+                                  n.data.status === 'accepted' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+                                }`}>
+                                  Invite {n.data.status}
+                                </span>
                               </div>
                             )}
                          </div>

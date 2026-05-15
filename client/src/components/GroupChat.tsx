@@ -1,9 +1,24 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, ArrowLeft, Shield, Info, X, Image, Video, FileText, Trash2, Edit2, UserMinus, ExternalLink, Plus } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Send, ArrowLeft, Shield, Info, X, Image, Video, FileText, Trash2, Edit2, UserMinus, ExternalLink, Plus, Reply, Check, Camera, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import { io, Socket } from 'socket.io-client';
+import { supabase } from '../lib/supabaseClient';
+
+const getUserColor = (username: string) => {
+  const colors = [
+    'text-blue-500', 'text-purple-500', 'text-pink-500', 'text-green-500', 
+    'text-yellow-500', 'text-orange-500', 'text-red-500', 'text-indigo-500',
+    'text-cyan-500', 'text-emerald-500'
+  ];
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
 
 interface GroupChatProps {
   group: any;
@@ -21,9 +36,48 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
   const [showMediaSelection, setShowMediaSelection] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(group.name);
+  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [socket, setSocket] = useState<Socket | null>(null);
   
   const { user } = useAuthStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<any>(null);
+
+  useEffect(() => {
+    const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    setSocket(newSocket);
+
+    newSocket.emit('join_group', group.id);
+
+    newSocket.on('user_typing', ({ username }) => {
+      setTypingUsers((prev) => prev.includes(username) ? prev : [...prev, username]);
+    });
+
+    newSocket.on('user_stop_typing', ({ username }) => {
+      setTypingUsers((prev) => prev.filter((u) => u !== username));
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [group.id]);
+
+  const handleTyping = () => {
+    if (!socket || !user) return;
+    
+    socket.emit('typing', { groupId: group.id, username: user.username });
+    
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('stop_typing', { groupId: group.id, username: user.username });
+    }, 2000);
+  };
 
   const fetchMessages = async () => {
     try {
@@ -60,13 +114,56 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
         groupId: group.id, 
         content: type === 'text' ? content : `Shared a ${type}`,
         mediaUrl: url,
-        mediaType: type
+        mediaType: type,
+        replyToId: replyingTo?.id
       });
-      setMessages([...messages, { ...res.data, username: user?.username }]);
+      setMessages([...messages, { ...res.data, username: user?.username, avatar_url: user?.avatar_url }]);
       if (type === 'text') setContent('');
+      setReplyingTo(null);
       setShowMediaSelection(false);
     } catch (err) {
       toast.error('Transmission failure');
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' | 'document') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${group.id}/${Date.now()}.${fileExt}`;
+      const filePath = `groups/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      await handleSend(type, publicUrl);
+      toast.success('Media synchronized');
+    } catch (err) {
+      toast.error('Media upload failed');
+      console.error(err);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      await api.delete(`/groups/messages/${messageId}`);
+      setMessages(messages.filter(m => m.id !== messageId));
+      toast.success('Message erased');
+    } catch (err) {
+      toast.error('Erasure failed');
     }
   };
 
@@ -137,12 +234,17 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
              <button onClick={onBack} className="p-2 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all">
                 <ArrowLeft className="w-5 h-5" />
              </button>
-             <div onClick={() => setShowDetails(true)} className="cursor-pointer group">
-                <h3 className="text-sm font-black text-white italic tracking-tighter flex items-center gap-2 group-hover:text-blue-400 transition-colors">
-                   {group.name}
-                   {group.role === 'admin' && <Shield className="w-3 h-3 text-blue-500" />}
-                </h3>
-                <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">Active Cluster // Tap for info</p>
+             <div onClick={() => setShowDetails(true)} className="cursor-pointer group flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-white text-xs uppercase overflow-hidden">
+                   {group.image_url ? <img src={group.image_url} className="w-full h-full object-cover" /> : group.name?.[0]}
+                </div>
+                <div>
+                   <h3 className="text-sm font-black text-white italic tracking-tighter flex items-center gap-2 group-hover:text-blue-400 transition-colors">
+                      {group.name}
+                      {group.role === 'admin' && <Shield className="w-3 h-3 text-blue-500" />}
+                   </h3>
+                   <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">Active Cluster // Tap for info</p>
+                </div>
              </div>
           </div>
           <div className="flex items-center gap-2">
@@ -159,35 +261,109 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col">
           {messages.map((m, i) => {
             const isMe = m.sender_id === user?.id;
+            const replyTo = messages.find(msg => msg.id === m.reply_to_id);
+
             return (
-              <div key={m.id || i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+              <div key={m.id || i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group/msg`}>
                  <div className="flex items-center gap-2 mb-1.5 px-1">
-                    {!isMe && <span className="text-[8px] font-black text-blue-500 uppercase">@{m.username}</span>}
+                    {!isMe && <span className={`text-[8px] font-black uppercase ${getUserColor(m.username)}`}>@{m.username}</span>}
                     <span className="text-[7px] text-gray-600 font-black uppercase">{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                  </div>
                  
-                 <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed ${
-                    isMe 
-                      ? 'bg-blue-600 text-white rounded-tr-none shadow-[0_4px_15px_rgba(37,99,235,0.3)]' 
-                      : 'bg-white/5 border border-white/10 text-gray-300 rounded-tl-none'
-                 }`}>
-                    {m.media_type === 'image' && (
-                       <img src={m.media_url} className="rounded-2xl mb-2 max-w-full border border-white/10" alt="" />
+                 <div className="flex items-start gap-2 max-w-[85%]">
+                    {isMe && (
+                       <button 
+                         onClick={() => handleDeleteMessage(m.id)}
+                         className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-600 hover:text-red-500 transition-all self-center"
+                       >
+                          <Trash2 className="w-3 h-3" />
+                       </button>
                     )}
-                    {m.media_type === 'video' && (
-                       <video src={m.media_url} controls className="rounded-2xl mb-2 max-w-full border border-white/10" />
+                    
+                    <div className="flex flex-col">
+                       {replyTo && (
+                          <div className={`mb-1 p-2 rounded-xl text-[10px] bg-white/5 border-l-2 border-blue-500 text-gray-500 truncate max-w-xs ${isMe ? 'self-end' : 'self-start'}`}>
+                             <span className="font-black">@{replyTo.username}:</span> {replyTo.content}
+                          </div>
+                       )}
+                       <div className={`p-4 rounded-3xl text-sm leading-relaxed relative ${
+                          isMe 
+                            ? 'bg-blue-600 text-white rounded-tr-none shadow-[0_4px_15px_rgba(37,99,235,0.3)]' 
+                            : 'bg-white/5 border border-white/10 text-gray-300 rounded-tl-none'
+                       }`}>
+                          {m.media_type === 'image' && (
+                             <img src={m.media_url} className="rounded-2xl mb-2 max-w-full border border-white/10" alt="" />
+                          )}
+                          {m.media_type === 'video' && (
+                             <video src={m.media_url} controls className="rounded-2xl mb-2 max-w-full border border-white/10" />
+                          )}
+                          {m.media_type === 'document' && (
+                             <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-black/20 rounded-xl mb-2 hover:bg-black/40 transition-all border border-white/5">
+                                <FileText className="w-5 h-5 text-blue-400" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Open Document</span>
+                             </a>
+                          )}
+                          <div className="font-medium whitespace-pre-wrap">{renderContent(m.content)}</div>
+                       </div>
+                    </div>
+
+                    {!isMe && (
+                       <button 
+                         onClick={() => setReplyingTo(m)}
+                         className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-600 hover:text-blue-500 transition-all self-center"
+                       >
+                          <Reply className="w-3 h-3" />
+                       </button>
                     )}
-                    <div className="font-medium">{renderContent(m.content)}</div>
                  </div>
               </div>
             );
           })}
+          
+          <AnimatePresence>
+             {typingUsers.length > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="flex items-center gap-3 text-[10px] text-gray-500 font-black uppercase tracking-widest px-2"
+                >
+                   <div className="flex gap-1">
+                      <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" />
+                      <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                   </div>
+                   {typingUsers.length === 1 
+                     ? `${typingUsers[0]} is typing...` 
+                     : `${typingUsers.join(', ')} are typing...`}
+                </motion.div>
+             )}
+          </AnimatePresence>
           <div ref={messagesEndRef} className="h-4" />
        </div>
 
        {/* Input Area */}
        <div className="p-6 bg-white/5 border-t border-white/5 backdrop-blur-md relative">
           <AnimatePresence>
+             {replyingTo && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute bottom-full left-0 right-0 p-4 bg-blue-600/10 backdrop-blur-xl border-t border-white/10 flex items-center justify-between z-40"
+                >
+                   <div className="flex items-center gap-3">
+                      <Reply className="w-4 h-4 text-blue-500" />
+                      <div className="text-[10px] font-black uppercase tracking-widest">
+                         Replying to <span className="text-white">@{replyingTo.username}</span>
+                      </div>
+                   </div>
+                   <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white">
+                      <X className="w-4 h-4" />
+                   </button>
+                </motion.div>
+             )}
+
              {showMediaSelection && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -195,19 +371,19 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                   exit={{ opacity: 0, y: 10, scale: 0.9 }}
                   className="absolute bottom-full left-6 mb-4 bg-[#111] border border-white/10 p-4 rounded-[2rem] shadow-2xl flex gap-6 z-50"
                 >
-                   <button onClick={() => handleSend('image', 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop')} className="flex flex-col items-center gap-2 group">
+                   <button onClick={() => imageInputRef.current?.click()} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-pink-500/20 text-pink-500 flex items-center justify-center group-hover:scale-110 transition-all">
                          <Image className="w-5 h-5" />
                       </div>
                       <span className="text-[8px] font-black uppercase text-gray-500">Image</span>
                    </button>
-                   <button onClick={() => handleSend('video', '#')} className="flex flex-col items-center gap-2 group">
+                   <button onClick={() => videoInputRef.current?.click()} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-500 flex items-center justify-center group-hover:scale-110 transition-all">
                          <Video className="w-5 h-5" />
                       </div>
                       <span className="text-[8px] font-black uppercase text-gray-500">Video</span>
                    </button>
-                   <button onClick={() => handleSend('document', '#')} className="flex flex-col items-center gap-2 group">
+                   <button onClick={() => docInputRef.current?.click()} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-all">
                          <FileText className="w-5 h-5" />
                       </div>
@@ -218,18 +394,44 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
           </AnimatePresence>
 
           <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-4 items-center">
+             <input 
+                type="file" 
+                ref={imageInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => handleFileSelect(e, 'image')}
+             />
+             <input 
+                type="file" 
+                ref={videoInputRef}
+                className="hidden"
+                accept="video/*"
+                onChange={(e) => handleFileSelect(e, 'video')}
+             />
+             <input 
+                type="file" 
+                ref={docInputRef}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={(e) => handleFileSelect(e, 'document')}
+             />
              <button 
                type="button" 
+               disabled={uploading}
                onClick={() => setShowMediaSelection(!showMediaSelection)}
                className={`p-3.5 rounded-2xl border transition-all ${showMediaSelection ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
              >
-                <Plus className={`w-5 h-5 transition-transform duration-300 ${showMediaSelection ? 'rotate-45' : ''}`} />
+                {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className={`w-5 h-5 transition-transform duration-300 ${showMediaSelection ? 'rotate-45' : ''}`} />}
              </button>
              <div className="flex-1 relative">
                 <input 
                   type="text" 
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    handleTyping();
+                  }}
+                  spellCheck={false}
                   placeholder="Sync transmission..."
                   className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-6 pr-14 text-sm font-medium focus:outline-none focus:border-blue-500/50 transition-all"
                 />
@@ -248,9 +450,9 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute inset-0 bg-[#050505] z-[100] flex flex-col"
+              className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#050505] z-[100] flex flex-col border-l border-white/10 shadow-2xl"
             >
-               <div className="p-8 border-b border-white/5 flex items-center justify-between">
+               <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
                   <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Cluster Details</h3>
                   <button onClick={() => setShowDetails(false)} className="p-2 rounded-xl hover:bg-white/5 text-gray-500 hover:text-white transition-all">
                      <X className="w-6 h-6" />
@@ -260,8 +462,47 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
                   {/* Identity */}
                   <div className="flex flex-col items-center text-center">
-                     <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-white text-3xl font-black mb-6 shadow-2xl">
-                        {group.name?.[0]}
+                     <div className="relative group/avatar mb-6">
+                        <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-2xl overflow-hidden">
+                           {group.image_url ? (
+                             <img src={group.image_url} className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-700" alt="Group" />
+                           ) : (
+                             group.name?.[0]
+                           )}
+                        </div>
+                        {group.role === 'admin' && (
+                          <button 
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.accept = 'image/*';
+                              input.onchange = async (e: any) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                setUploading(true);
+                                try {
+                                  const fileExt = file.name.split('.').pop();
+                                  const fileName = `group-${group.id}-${Date.now()}.${fileExt}`;
+                                  const filePath = `groups/${fileName}`;
+                                  const { error } = await supabase.storage.from('profiles').upload(filePath, file);
+                                  if (error) throw error;
+                                  const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(filePath);
+                                  const res = await api.put('/groups/update', { groupId: group.id, imageUrl: publicUrl });
+                                  setGroup({ ...group, image_url: res.data.image_url });
+                                  toast.success('Cluster visual established');
+                                } catch (err) {
+                                  toast.error('Visual sync failed');
+                                } finally {
+                                  setUploading(false);
+                                }
+                              };
+                              input.click();
+                            }}
+                            className="absolute -bottom-2 -right-2 w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center shadow-xl hover:scale-110 transition-transform"
+                          >
+                            <Camera className="w-4 h-4" />
+                          </button>
+                        )}
                      </div>
                      {isEditingName ? (
                         <div className="flex gap-2 w-full max-w-xs">
@@ -269,15 +510,24 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                              type="text" 
                              value={newName} 
                              onChange={(e) => setNewName(e.target.value)}
-                             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm font-black"
+                             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm font-black text-white"
                            />
-                           <button onClick={handleRename} className="p-2 bg-blue-600 rounded-xl"><CheckIcon className="w-4 h-4" /></button>
+                           <button onClick={async () => {
+                             try {
+                               const res = await api.put('/groups/update', { groupId: group.id, name: newName });
+                               setGroup({ ...group, name: res.data.name });
+                               setIsEditingName(false);
+                               toast.success('Cluster renamed');
+                             } catch (err) {
+                               toast.error('Rename failed');
+                             }
+                           }} className="p-2 bg-blue-600 rounded-xl"><Check className="w-4 h-4 text-white" /></button>
                         </div>
                      ) : (
                         <div className="flex items-center gap-3">
                            <h4 className="text-2xl font-black text-white italic tracking-tighter">{group.name}</h4>
                            {group.role === 'admin' && (
-                             <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white"><Edit2 className="w-3 h-3" /></button>
+                             <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-3 h-3" /></button>
                            )}
                         </div>
                      )}

@@ -67,11 +67,11 @@ exports.login = async (req, res) => {
     try {
         if (loginCredential.includes('@')) {
           // It looks like an email address
-          const result = await db.query('SELECT u.*, p.username FROM users u JOIN profiles p ON u.id = p.user_id WHERE u.email = $1', [loginCredential]);
+          const result = await db.query('SELECT u.*, p.username, p.avatar_url FROM users u JOIN profiles p ON u.id = p.user_id WHERE u.email = $1', [loginCredential]);
           user = result.rows[0];
         } else {
           // Assume it's a username
-          const result = await db.query('SELECT u.*, p.username FROM users u JOIN profiles p ON u.id = p.user_id WHERE p.username = $1', [loginCredential]);
+          const result = await db.query('SELECT u.*, p.username, p.avatar_url FROM users u JOIN profiles p ON u.id = p.user_id WHERE p.username = $1', [loginCredential]);
           user = result.rows[0];
         }
 
@@ -90,8 +90,8 @@ exports.login = async (req, res) => {
           { expiresIn: '1d' }
         );
 
-        // Return essential user info, including username
-        res.json({ token, user: { id: user.id, email: user.email, role: user.role, username: user.username } });
+        // Return essential user info, including username and avatar_url
+        res.json({ token, user: { id: user.id, email: user.email, role: user.role, username: user.username, avatar_url: user.avatar_url } });
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ message: err.message });

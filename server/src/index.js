@@ -59,6 +59,19 @@ app.use('/api/groups', groupRoutes);
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  socket.on('join_group', (groupId) => {
+    socket.join(groupId);
+    console.log(`User ${socket.id} joined group ${groupId}`);
+  });
+
+  socket.on('typing', ({ groupId, username }) => {
+    socket.to(groupId).emit('user_typing', { groupId, username });
+  });
+
+  socket.on('stop_typing', ({ groupId, username }) => {
+    socket.to(groupId).emit('user_stop_typing', { groupId, username });
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });

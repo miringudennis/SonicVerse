@@ -108,12 +108,26 @@ exports.respondToInvite = async (req, res) => {
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Invite not found' });
       }
+
+      // Update notification to show it was accepted
+      await db.query(
+        "UPDATE notifications SET data = data || '{\"status\": \"accepted\"}'::jsonb WHERE user_id = $1 AND type = 'group_invite' AND (data->>'group_id')::uuid = $2",
+        [userId, groupId]
+      );
+
       res.json({ success: true, member: result.rows[0] });
     } else {
       await db.query(
         'DELETE FROM group_members WHERE group_id = $1 AND user_id = $2 AND status = $3',
         [groupId, userId, 'invited']
       );
+
+      // Update notification to show it was declined
+      await db.query(
+        "UPDATE notifications SET data = data || '{\"status\": \"declined\"}'::jsonb WHERE user_id = $1 AND type = 'group_invite' AND (data->>'group_id')::uuid = $2",
+        [userId, groupId]
+      );
+
       res.json({ success: true, message: 'Invite declined' });
     }
   } catch (err) {
@@ -122,7 +136,7 @@ exports.respondToInvite = async (req, res) => {
 };
 
 exports.sendMessage = async (req, res) => {
-  const { groupId, content, mediaUrl, mediaType } = req.body;
+  const { groupId, content, mediaUrl, mediaType, replyToId } = req.body;
   const userId = req.user.id;
 
   try {
@@ -135,10 +149,51 @@ exports.sendMessage = async (req, res) => {
     }
 
     const result = await db.query(
-      'INSERT INTO group_messages (group_id, sender_id, content, media_url, media_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [groupId, userId, content, mediaUrl, mediaType || 'text']
+      'INSERT INTO group_messages (group_id, sender_id, content, media_url, media_type, reply_to_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [groupId, userId, content, mediaUrl, mediaType || 'text', replyToId]
     );
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteMessage = async (req, res) => {
+  const { messageId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const result = await db.query(
+      'DELETE FROM group_messages WHERE id = $1 AND sender_id = $2 RETURNING *',
+      [messageId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Message not found or you are not the sender' });
+    }
+
+    res.json({ success: true, message: 'Message deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateGroup = async (req, res) => {
+  const { groupId, name, imageUrl } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const adminCheck = await db.query(
+      'SELECT * FROM group_members WHERE group_id = $1 AND user_id = $2 AND role = $3',
+      [groupId, userId, 'admin']
+    );
+    if (adminCheck.rows.length === 0) return res.status(403).json({ message: 'Admin access required' });
+
+    const result = await db.query(
+      'UPDATE groups SET name = COALESCE($1, name), image_url = COALESCE($2, image_url) WHERE id = $3 RETURNING *',
+      [name, imageUrl, groupId]
+    );
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
