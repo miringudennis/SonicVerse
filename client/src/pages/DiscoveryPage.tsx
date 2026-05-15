@@ -82,14 +82,33 @@ export const DiscoveryPage = () => {
 
   const systems = useMemo(() => {
     if (!activeGalaxy) return [];
-    // Extract unique genres or just mock them for now based on artists if we had genre data per track
-    return ['Electronic', 'Neural Pop', 'Deep Bass', 'Ambient', 'High Resonance'].slice(0, 5);
-  }, [activeGalaxy]);
+    const galaxyData = results[activeGalaxy as keyof typeof results] || [];
+    
+    // Extract unique genres from all items in this galaxy
+    const genreSet = new Set<string>();
+    galaxyData.forEach(item => {
+      if (item.genres && Array.isArray(item.genres)) {
+        item.genres.slice(0, 2).forEach((g: string) => genreSet.add(g));
+      }
+    });
 
-  const items = useMemo(() => {
-    if (!activeGalaxy) return [];
-    return results[activeGalaxy as keyof typeof results] || [];
+    const derivedGenres = Array.from(genreSet);
+    return derivedGenres.length > 0 ? derivedGenres : ['Ambient Resonance', 'Hyper Neural', 'Sonic Core'];
   }, [activeGalaxy, results]);
+
+  const filteredItems = useMemo(() => {
+    if (!activeGalaxy || !activeSystem) return [];
+    const galaxyData = results[activeGalaxy as keyof typeof results] || [];
+    
+    // If it's a "dummy" genre, just return all data
+    if (['Ambient Resonance', 'Hyper Neural', 'Sonic Core'].includes(activeSystem)) {
+      return galaxyData;
+    }
+
+    return galaxyData.filter(item => 
+      item.genres && item.genres.some((g: string) => g.toLowerCase() === activeSystem.toLowerCase())
+    );
+  }, [activeGalaxy, activeSystem, results]);
 
   const handleGalaxySelect = (platform: string) => {
     if (platform === 'universe') {
@@ -115,6 +134,16 @@ export const DiscoveryPage = () => {
     setView('system');
   };
 
+  const handleBack = () => {
+    if (view === 'system') {
+      setView('galaxy');
+      setActiveSystem(null);
+    } else if (view === 'galaxy') {
+      setView('universe');
+      setActiveGalaxy(null);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto pb-20">
       <section className="mb-10 relative overflow-hidden rounded-[3rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
@@ -124,19 +153,19 @@ export const DiscoveryPage = () => {
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
             <Zap className="w-3 h-3" />
-            <span>Neural Discovery v5.0 // Astro Module</span>
+            <span>Neural Discovery v5.5 // Multiverse Module</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter leading-none mb-6">
-            Discovery <br /> Galaxies.
+            Neural <br /> Multiverse.
           </h1>
           <p className="text-gray-400 text-xl max-w-2xl font-medium leading-relaxed mb-10">
-            Traverse the musical universe. SonicVerse has mapped your archives into high-frequency constellations. Select a galaxy to initialize exploration.
+            Traverse your synchronized musical constellations. Select a galaxy to initialize high-frequency exploration across the neural grid.
           </p>
           
           {loading && (
              <div className="flex items-center gap-4 text-blue-500">
                 <div className="w-6 h-6 border-b-2 border-current rounded-full animate-spin" />
-                <span className="text-xs font-black uppercase tracking-[0.3em]">Mapping Verse...</span>
+                <span className="text-xs font-black uppercase tracking-[0.3em]">Mapping Multiverse...</span>
              </div>
           )}
         </div>
@@ -148,10 +177,11 @@ export const DiscoveryPage = () => {
            activeGalaxy={activeGalaxy}
            activeSystem={activeSystem}
            systems={systems}
-           items={items}
+           items={view === 'system' ? filteredItems : (results[activeGalaxy as keyof typeof results] || [])}
            onGalaxySelect={handleGalaxySelect}
            onSystemSelect={handleSystemSelect}
-           onItemSelect={(item) => setSong(item, items)}
+           onItemSelect={(item) => setSong(item, results[activeGalaxy as keyof typeof results] || [])}
+           onBack={handleBack}
          />
          
          {!isSpotifyConnected && !isYoutubeLinked && !isAppleLinked && (

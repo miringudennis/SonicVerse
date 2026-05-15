@@ -298,16 +298,34 @@ exports.getRecommendations = async (req, res) => {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
-    const recommendations = response.data.tracks.map(track => ({
-      id: track.id,
-      title: track.name,
-      artist_name: track.artists[0].name,
-      artist_id: track.artists[0].id,
-      cover_url: track.album.images[0]?.url,
-      audio_url: track.preview_url,
-      preview_url: track.preview_url,
-      external_url: track.external_urls.spotify,
-      source: 'Spotify'
+    const recommendations = await Promise.all(response.data.tracks.map(async track => {
+      // To get genres, we need to fetch the artist details
+      try {
+        const artistRes = await axios.get(`https://api.spotify.com/v1/artists/${track.artists[0].id}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        return {
+          id: track.id,
+          title: track.name,
+          artist_name: track.artists[0].name,
+          artist_id: track.artists[0].id,
+          cover_url: track.album.images[0]?.url,
+          audio_url: track.preview_url,
+          genres: artistRes.data.genres,
+          source: 'Spotify'
+        };
+      } catch (e) {
+        return {
+          id: track.id,
+          title: track.name,
+          artist_name: track.artists[0].name,
+          artist_id: track.artists[0].id,
+          cover_url: track.album.images[0]?.url,
+          audio_url: track.preview_url,
+          genres: [],
+          source: 'Spotify'
+        };
+      }
     }));
 
     res.json(recommendations);
