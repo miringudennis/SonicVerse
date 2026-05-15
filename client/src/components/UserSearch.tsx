@@ -67,7 +67,7 @@ export const UserSearch = ({ onFollowUpdate }: { onFollowUpdate: () => void }) =
                   {u.avatar_url ? <img src={u.avatar_url} className="w-full h-full object-cover rounded-xl" alt="" /> : u.username[0]}
                </div>
                <div>
-                  <h4 className="text-xs font-black text-white uppercase italic tracking-tighter">@{u.username}</h4>
+                  <h4 className="text-xs font-black text-white italic tracking-tighter">@{u.username}</h4>
                   <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">{u.display_name || 'Neural Entity'}</p>
                </div>
             </div>

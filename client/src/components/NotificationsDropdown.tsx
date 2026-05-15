@@ -105,7 +105,7 @@ export const NotificationsDropdown = () => {
                                  <>
                                    <span className="font-black text-white">{n.data.username || 'System'}</span> invited you to <span className="font-black text-purple-400">{n.data.group_name}</span>
                                  </>
-                               ) : n.type === 'follow' ? (
+                                 ) : n.type === 'follow' ? (
                                  <>
                                    <span className="font-black text-white">@{n.data.username}</span> initialized a following protocol
                                  </>

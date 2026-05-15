@@ -62,13 +62,38 @@ exports.getFollowing = async (req, res) => {
 
   try {
     const result = await db.query(
-      `SELECT p.user_id, p.username, p.display_name, p.avatar_url
+      `SELECT p.user_id, p.username, p.display_name, p.avatar_url,
+       EXISTS(
+         SELECT 1 FROM posts po 
+         WHERE po.user_id = p.user_id 
+         AND po.created_at > f.last_seen_at
+       ) as has_new_posts,
+       (
+         SELECT po.created_at FROM posts po 
+         WHERE po.user_id = p.user_id 
+         ORDER BY po.created_at DESC LIMIT 1
+       ) as latest_post_at
        FROM profiles p
        JOIN follows f ON p.user_id = f.following_id
-       WHERE f.follower_id = $1`,
+       WHERE f.follower_id = $1
+       ORDER BY has_new_posts DESC, latest_post_at DESC NULLS LAST`,
       [userId]
     );
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateLastSeen = async (req, res) => {
+  const followerId = req.user.id;
+  const { followingId } = req.body;
+  try {
+    await db.query(
+      'UPDATE follows SET last_seen_at = CURRENT_TIMESTAMP WHERE follower_id = $1 AND following_id = $2',
+      [followerId, followingId]
+    );
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

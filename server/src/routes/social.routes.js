@@ -7,6 +7,7 @@ router.get('/search', authMiddleware, socialController.searchUsers);
 router.post('/follow', authMiddleware, socialController.followUser);
 router.post('/unfollow', authMiddleware, socialController.unfollowUser);
 router.get('/following', authMiddleware, socialController.getFollowing);
+router.post('/update-seen', authMiddleware, socialController.updateLastSeen);
 router.get('/notifications', authMiddleware, socialController.getNotifications);
 router.post('/notifications/read', authMiddleware, socialController.markNotificationsRead);
 

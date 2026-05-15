@@ -122,11 +122,10 @@ exports.respondToInvite = async (req, res) => {
 };
 
 exports.sendMessage = async (req, res) => {
-  const { groupId, content } = req.body;
+  const { groupId, content, mediaUrl, mediaType } = req.body;
   const userId = req.user.id;
 
   try {
-    // Check membership
     const memberCheck = await db.query(
       'SELECT * FROM group_members WHERE group_id = $1 AND user_id = $2 AND status = $3',
       [groupId, userId, 'accepted']
@@ -136,13 +135,77 @@ exports.sendMessage = async (req, res) => {
     }
 
     const result = await db.query(
-      'INSERT INTO group_messages (group_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *',
-      [groupId, userId, content]
+      'INSERT INTO group_messages (group_id, sender_id, content, media_url, media_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [groupId, userId, content, mediaUrl, mediaType || 'text']
     );
-
-    // Optional: Notify other members (complex for simple REST, usually handled by sockets)
-    
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.renameGroup = async (req, res) => {
+  const { groupId, name } = req.body;
+  const userId = req.user.id;
+  try {
+    const adminCheck = await db.query(
+      'SELECT * FROM group_members WHERE group_id = $1 AND user_id = $2 AND role = $3',
+      [groupId, userId, 'admin']
+    );
+    if (adminCheck.rows.length === 0) return res.status(403).json({ message: 'Admin access required' });
+
+    const result = await db.query('UPDATE groups SET name = $1 WHERE id = $2 RETURNING *', [name, groupId]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.removeMember = async (req, res) => {
+  const { groupId, targetUserId } = req.body;
+  const userId = req.user.id;
+  try {
+    const adminCheck = await db.query(
+      'SELECT * FROM group_members WHERE group_id = $1 AND user_id = $2 AND role = $3',
+      [groupId, userId, 'admin']
+    );
+    if (adminCheck.rows.length === 0) return res.status(403).json({ message: 'Admin access required' });
+
+    await db.query('DELETE FROM group_members WHERE group_id = $1 AND user_id = $2', [groupId, targetUserId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteGroup = async (req, res) => {
+  const { groupId } = req.params;
+  const userId = req.user.id;
+  try {
+    const adminCheck = await db.query(
+      'SELECT * FROM groups WHERE id = $1 AND created_by = $2',
+      [groupId, userId]
+    );
+    if (adminCheck.rows.length === 0) return res.status(403).json({ message: 'Only group owner can delete' });
+
+    await db.query('DELETE FROM groups WHERE id = $1', [groupId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getGroupMembers = async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    const result = await db.query(
+      `SELECT gm.role, gm.status, p.username, p.display_name, p.avatar_url, p.user_id
+       FROM group_members gm
+       JOIN profiles p ON gm.user_id = p.user_id
+       WHERE gm.group_id = $1`,
+      [groupId]
+    );
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
