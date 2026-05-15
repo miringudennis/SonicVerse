@@ -671,7 +671,7 @@ export const CatalogPage = () => {
               </div>
             </div>
 
-            {loading ? (
+            {artistLoading ? (
               <div className="flex flex-col items-center justify-center py-20 bg-[#0a0a0a] rounded-[3.5rem] border border-white/5">
                 <div className="w-12 h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
               </div>
@@ -785,7 +785,7 @@ export const CatalogPage = () => {
                  </div>
               </div>
 
-              {loading ? (
+              {albumLoading ? (
                 <div className="flex flex-col items-center justify-center py-32 bg-[#0a0a0a] rounded-[3.5rem] border border-white/5">
                    <div className="w-12 h-12 rounded-full border-b-4 border-blue-500 animate-spin" />
                 </div>

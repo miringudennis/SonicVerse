@@ -1,6 +1,6 @@
-import { useRef, useState, useMemo } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Float, Sphere, Html, Text, PerspectiveCamera, OrbitControls, Stars } from '@react-three/drei';
+import { useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Float, Sphere, Html, PerspectiveCamera, OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { 
   Users, 
@@ -8,9 +8,7 @@ import {
   Disc, 
   History, 
   Layers, 
-  User,
-  Music,
-  Video
+  User
 } from 'lucide-react';
 
 interface PlanetProps {
@@ -27,7 +25,7 @@ const Planet = ({ position, color, label, icon: Icon, onClick, scale = 1, emissi
   const [hovered, setHovered] = useState(false);
   const meshRef = useRef<THREE.Mesh>(null!);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.005;
       if (hovered) {
