@@ -12,17 +12,54 @@ export const NotificationsDropdown = () => {
   const fetchNotifications = async () => {
     try {
       const res = await api.get('/social/notifications');
-      setNotifications(res.data);
+      
+      // Process notifications to group message alerts by group_id
+      const rawNotifications = res.data;
+      const processed: any[] = [];
+      const groupAlerts: Record<string, any> = {};
+
+      rawNotifications.forEach((n: any) => {
+        if (n.type === 'group_message') {
+          const groupId = n.data.group_id;
+          if (!groupAlerts[groupId]) {
+             groupAlerts[groupId] = {
+                ...n,
+                message_count: 1
+             };
+          } else {
+             groupAlerts[groupId].message_count++;
+             if (new Date(n.created_at) > new Date(groupAlerts[groupId].created_at)) {
+                groupAlerts[groupId].created_at = n.created_at;
+             }
+          }
+        } else {
+          processed.push(n);
+        }
+      });
+
+      // Add grouped alerts
+      Object.values(groupAlerts).forEach(alert => {
+         processed.push({
+            ...alert,
+            data: {
+               ...alert.data,
+               message: `${alert.data.group_name} has new messages`
+            }
+         });
+      });
+
+      // Sort by date
+      setNotifications(processed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     } catch (err) {
       console.error('Failed to fetch notifications', err);
     }
   };
 
   useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
-  }, [isOpen]);
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 5000); // Scan every 5s
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

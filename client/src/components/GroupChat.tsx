@@ -133,17 +133,18 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${group.id}/${Date.now()}.${fileExt}`;
-      const filePath = `groups/${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user?.id}/groups/${group.id}/${fileName}`;
 
+      // Using 'profiles' bucket as it's confirmed to be active and following user-path policy
       const { error: uploadError } = await supabase.storage
-        .from('media')
+        .from('profiles')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('media')
+        .from('profiles')
         .getPublicUrl(filePath);
 
       await handleSend(type, publicUrl);
@@ -202,6 +203,13 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const renderContent = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = text.split(urlRegex);
@@ -218,30 +226,41 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
   };
 
   return (
-    <div className="flex flex-col h-[750px] bg-[#0a0a0a] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
+    <div className="flex flex-col h-full md:h-[750px] fixed inset-0 z-[60] md:relative md:inset-auto bg-[#0a0a0a] md:rounded-[2.5rem] border-0 md:border md:border-white/5 overflow-hidden shadow-2xl transition-all duration-500">
+       {/* Wallpaper Background */}
+       {group.wallpaper_url && (
+         <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+            <img src={group.wallpaper_url} className="w-full h-full object-cover" alt="" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a]" />
+         </div>
+       )}
+
        {/* Header */}
-       <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-md">
-          <div className="flex items-center gap-4">
+       <div className="p-4 md:p-6 border-b border-white/5 flex items-center justify-between bg-black/60 backdrop-blur-xl z-10">
+          <div className="flex items-center gap-3 md:gap-4">
              <button onClick={onBack} className="p-2 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all">
                 <ArrowLeft className="w-5 h-5" />
              </button>
              <div onClick={() => setShowDetails(true)} className="cursor-pointer group flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-white text-xs uppercase overflow-hidden">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-white text-xs uppercase overflow-hidden shadow-lg">
                    {group.image_url ? <img src={group.image_url} className="w-full h-full object-cover" /> : group.name?.[0]}
                 </div>
                 <div>
-                   <h3 className="text-sm font-black text-white italic tracking-tighter flex items-center gap-2 group-hover:text-blue-400 transition-colors">
+                   <h3 className="text-sm md:text-base font-black text-white italic tracking-tighter flex items-center gap-2 group-hover:text-blue-400 transition-colors">
                       {group.name}
                       {group.role === 'admin' && <Shield className="w-3 h-3 text-blue-500" />}
                    </h3>
-                   <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">Active Cluster // Tap for info</p>
+                   <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">Neural Cluster Active</p>
+                   </div>
                 </div>
              </div>
           </div>
           <div className="flex items-center gap-2">
              <button 
                onClick={() => setShowDetails(true)}
-               className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white transition-all"
+               className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white transition-all hover:scale-105"
              >
                 <Info className="w-4 h-4" />
              </button>
@@ -249,7 +268,7 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
        </div>
 
        {/* Main Chat Area */}
-       <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col">
+       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar flex flex-col z-10">
           {messages.map((m, i) => {
             const isMe = m.sender_id === user?.id;
             const replyTo = messages.find(msg => msg.id === m.reply_to_id);
@@ -415,18 +434,21 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                 {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className={`w-5 h-5 transition-transform duration-300 ${showMediaSelection ? 'rotate-45' : ''}`} />}
              </button>
              <div className="flex-1 relative">
-                <input 
-                  type="text" 
+                <textarea 
                   value={content}
                   onChange={(e) => {
                     setContent(e.target.value);
                     handleTyping();
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
                   }}
+                  onKeyDown={handleKeyDown}
                   spellCheck={false}
                   placeholder="Sync transmission..."
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-6 pr-14 text-sm font-medium focus:outline-none focus:border-blue-500/50 transition-all"
+                  rows={1}
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-6 pr-14 text-sm font-medium focus:outline-none focus:border-blue-500/50 transition-all resize-none custom-scrollbar"
                 />
-                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-white text-black rounded-xl hover:scale-105 active:scale-95 transition-all">
+                <button type="button" onClick={() => handleSend()} className="absolute right-2 bottom-2 p-3 bg-white text-black rounded-xl hover:scale-105 active:scale-95 transition-all">
                    <Send className="w-4 h-4" />
                 </button>
              </div>
@@ -441,20 +463,20 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#050505] z-[100] flex flex-col border-l border-white/10 shadow-2xl"
+              className="absolute top-0 right-0 bottom-0 w-full md:w-[400px] bg-[#050505] z-[100] flex flex-col border-l border-white/10 shadow-2xl"
             >
-               <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
-                  <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Cluster Details</h3>
+               <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
+                  <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Cluster Protocol</h3>
                   <button onClick={() => setShowDetails(false)} className="p-2 rounded-xl hover:bg-white/5 text-gray-500 hover:text-white transition-all">
                      <X className="w-6 h-6" />
                   </button>
                </div>
 
-               <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
-                  {/* Identity */}
-                  <div className="flex flex-col items-center text-center">
-                     <div className="relative group/avatar mb-6">
-                        <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-2xl overflow-hidden">
+               <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-12 custom-scrollbar">
+                  {/* Identity Section */}
+                  <div className="flex flex-col items-center text-center space-y-6">
+                     <div className="relative group/avatar">
+                        <div className="w-28 h-28 md:w-32 md:h-32 rounded-[2.5rem] bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-white text-4xl font-black shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden border-4 border-white/5">
                            {group.image_url ? (
                              <img src={group.image_url} className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-700" alt="Group" />
                            ) : (
@@ -480,94 +502,126 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                                   const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(filePath);
                                   const res = await api.put('/groups/update', { groupId: group.id, imageUrl: publicUrl });
                                   setGroup({ ...group, image_url: res.data.image_url });
-                                  toast.success('Cluster visual established');
+                                  toast.success('Visual established');
                                 } catch (err) {
-                                  toast.error('Visual sync failed');
+                                  toast.error('Sync failed');
                                 } finally {
                                   setUploading(false);
                                 }
                               };
                               input.click();
                             }}
-                            className="absolute -bottom-2 -right-2 w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center shadow-xl hover:scale-110 transition-transform"
+                            className="absolute -bottom-2 -right-2 w-10 h-10 bg-white text-black rounded-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform z-10"
                           >
-                            <Camera className="w-4 h-4" />
+                            <Camera className="w-5 h-5" />
                           </button>
                         )}
                      </div>
-                     {isEditingName ? (
-                        <div className="flex gap-2 w-full max-w-xs">
-                           <input 
-                             type="text" 
-                             value={newName} 
-                             onChange={(e) => setNewName(e.target.value)}
-                             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm font-black text-white"
-                           />
-                           <button onClick={async () => {
-                             try {
-                               const res = await api.put('/groups/update', { groupId: group.id, name: newName });
-                               setGroup({ ...group, name: res.data.name });
-                               setIsEditingName(false);
-                               toast.success('Cluster renamed');
-                             } catch (err) {
-                               toast.error('Rename failed');
-                             }
-                           }} className="p-2 bg-blue-600 rounded-xl"><Check className="w-4 h-4 text-white" /></button>
-                        </div>
-                     ) : (
-                        <div className="flex items-center gap-3">
-                           <h4 className="text-2xl font-black text-white italic tracking-tighter">{group.name}</h4>
-                           {group.role === 'admin' && (
-                             <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-3 h-3" /></button>
-                           )}
-                        </div>
-                     )}
-                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-2">Active Cluster Since {new Date(group.created_at).toLocaleDateString()}</p>
+
+                     <div className="space-y-2">
+                        {isEditingName ? (
+                           <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                value={newName} 
+                                onChange={(e) => setNewName(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm font-black text-white focus:border-blue-500 outline-none"
+                              />
+                              <button onClick={async () => {
+                                try {
+                                  const res = await api.put('/groups/update', { groupId: group.id, name: newName });
+                                  setGroup({ ...group, name: res.data.name });
+                                  setIsEditingName(false);
+                                  toast.success('Cluster renamed');
+                                } catch (err) {
+                                  toast.error('Failed');
+                                }
+                              }} className="p-2 bg-blue-600 rounded-xl text-white"><Check className="w-4 h-4" /></button>
+                           </div>
+                        ) : (
+                           <div className="flex items-center justify-center gap-3">
+                              <h4 className="text-3xl font-black text-white italic tracking-tighter">{group.name}</h4>
+                              {group.role === 'admin' && (
+                                <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-4 h-4" /></button>
+                              )}
+                           </div>
+                        )}
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Node Established {new Date(group.created_at).toLocaleDateString()}</p>
+                     </div>
                   </div>
 
-                  {/* Members List */}
+                  {/* Wallpaper Section - Admin Only */}
+                  {group.role === 'admin' && (
+                    <div className="space-y-4 p-6 bg-white/5 rounded-3xl border border-white/5">
+                       <div className="flex items-center justify-between">
+                          <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                             <Image className="w-3 h-3 text-purple-500" /> Neural Wallpaper
+                          </h5>
+                          <button 
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.accept = 'image/*';
+                              input.onchange = async (e: any) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                setUploading(true);
+                                try {
+                                  const fileExt = file.name.split('.').pop();
+                                  const fileName = `wallpaper-${group.id}-${Date.now()}.${fileExt}`;
+                                  const filePath = `groups/wallpapers/${fileName}`;
+                                  const { error } = await supabase.storage.from('profiles').upload(filePath, file);
+                                  if (error) throw error;
+                                  const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(filePath);
+                                  const res = await api.put('/groups/update', { groupId: group.id, wallpaperUrl: publicUrl });
+                                  setGroup({ ...group, wallpaper_url: res.data.wallpaper_url });
+                                  toast.success('Wallpaper synchronized');
+                                } catch (err) {
+                                  toast.error('Wallpaper sync failed');
+                                } finally {
+                                  setUploading(false);
+                                }
+                              };
+                              input.click();
+                            }}
+                            className="text-[8px] font-black text-blue-500 uppercase tracking-widest hover:text-white transition-colors"
+                          >
+                             Update Signal
+                          </button>
+                       </div>
+                       <div className="h-24 w-full rounded-2xl bg-black/40 border border-white/5 overflow-hidden group/wp relative">
+                          {group.wallpaper_url ? (
+                            <img src={group.wallpaper_url} className="w-full h-full object-cover opacity-60 group-hover/wp:opacity-100 transition-opacity" alt="" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-700 text-[8px] font-black uppercase tracking-widest">No Active Wallpaper</div>
+                          )}
+                       </div>
+                    </div>
+                  )}
+
+                  {/* Members Section */}
                   <div className="space-y-6">
                      <div className="flex items-center justify-between">
                         <h5 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Node Roster ({members.length})</h5>
                      </div>
                      
-                     <AnimatePresence>
-                        {showInvite && (
-                          <motion.div 
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                             <form onSubmit={handleInvite} className="flex gap-2 p-4 bg-blue-600/5 border border-blue-500/20 rounded-2xl">
-                                <input 
-                                  type="text" 
-                                  value={inviteQuery} 
-                                  onChange={(e) => setInviteQuery(e.target.value)}
-                                  placeholder="Invite by username..."
-                                  className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black"
-                                />
-                                <button type="submit" className="p-2 bg-blue-600 rounded-xl text-white"><Plus className="w-4 h-4" /></button>
-                                <button type="button" onClick={() => setShowInvite(false)} className="p-2 text-gray-500"><X className="w-4 h-4" /></button>
-                             </form>
-                          </motion.div>
-                        )}
-                     </AnimatePresence>
-
                      <div className="space-y-3">
                         {members.map((m) => (
-                           <div key={m.user_id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                           <div key={m.user_id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-all group/member">
                               <div className="flex items-center gap-3">
                                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-white text-xs uppercase overflow-hidden">
                                     {m.avatar_url ? <img src={m.avatar_url} className="w-full h-full object-cover" /> : m.username[0]}
                                  </div>
                                  <div>
-                                    <h6 className="text-xs font-black text-white">@{m.username}</h6>
-                                    <p className="text-[8px] text-gray-600 font-black uppercase tracking-widest">{m.role}</p>
+                                    <h6 className="text-xs font-black text-white group-hover/member:text-blue-400 transition-colors">@{m.username}</h6>
+                                    <div className="flex items-center gap-2">
+                                       <div className={`w-1 h-1 rounded-full ${m.role === 'admin' ? 'bg-blue-500' : 'bg-gray-600'}`} />
+                                       <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest">{m.role}</p>
+                                    </div>
                                  </div>
                               </div>
                               {group.role === 'admin' && m.user_id !== user?.id && (
-                                <button onClick={() => handleRemoveMember(m.user_id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
+                                <button onClick={() => handleRemoveMember(m.user_id)} className="p-2 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
                                    <UserMinus className="w-4 h-4" />
                                 </button>
                               )}
@@ -576,31 +630,35 @@ export const GroupChat = ({ group: initialGroup, onBack }: GroupChatProps) => {
                      </div>
                   </div>
 
-                  {/* Invite Member - Visible to admin in details or just a separate form */}
+                  {/* Invite New Nodes */}
                   {group.role === 'admin' && (
-                    <div className="space-y-6 border-t border-white/5 pt-12">
-                       <h5 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Invite New Node</h5>
+                    <div className="space-y-6 p-6 bg-blue-600/5 border border-blue-500/10 rounded-[2rem]">
+                       <h5 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <Plus className="w-3 h-3" /> Expand Signal Network
+                       </h5>
                        <form onSubmit={handleInvite} className="flex gap-2">
                           <input 
                             type="text" 
                             value={inviteQuery} 
                             onChange={(e) => setInviteQuery(e.target.value)}
-                            placeholder="Username..."
-                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-black"
+                            placeholder="Enter username..."
+                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white focus:border-blue-500 outline-none"
                           />
-                          <button type="submit" className="p-2 bg-blue-600 rounded-xl text-white"><Plus className="w-4 h-4" /></button>
+                          <button type="submit" className="px-4 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all font-black text-[10px] uppercase tracking-widest">
+                             Link
+                          </button>
                        </form>
                     </div>
                   )}
 
-                  {/* Actions */}
+                  {/* Danger Zone */}
                   {group.role === 'admin' && (
-                     <div className="pt-12 border-t border-white/5 space-y-4">
+                     <div className="pt-12 border-t border-white/5">
                         <button 
                           onClick={handleDeleteGroup}
-                          className="w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/10 transition-all flex items-center justify-center gap-3"
+                          className="w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-3 group"
                         >
-                           <Trash2 className="w-4 h-4" /> Terminate Cluster
+                           <Trash2 className="w-4 h-4 group-hover:animate-bounce" /> Deconstruct Cluster
                         </button>
                      </div>
                   )}

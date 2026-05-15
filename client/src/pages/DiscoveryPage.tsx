@@ -146,26 +146,26 @@ export const DiscoveryPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
-      <section className="mb-10 relative overflow-hidden rounded-[3rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
-        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-          <Globe className="w-64 h-64 text-blue-500 animate-pulse" />
+      <section className="mb-8 relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-6 md:p-8 shadow-2xl">
+        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+          <Globe className="w-48 h-48 text-blue-500 animate-pulse" />
         </div>
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-[0.2em] mb-4">
             <Zap className="w-3 h-3" />
             <span>Neural Discovery v5.5 // Multiverse Module</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter leading-none mb-6">
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
             Neural <br /> Multiverse.
           </h1>
-          <p className="text-gray-400 text-xl max-w-2xl font-medium leading-relaxed mb-10">
+          <p className="text-gray-400 text-base max-w-xl font-medium leading-relaxed mb-6">
             Traverse your synchronized musical constellations. Select a galaxy to initialize high-frequency exploration across the neural grid.
           </p>
           
           {loading && (
              <div className="flex items-center gap-4 text-blue-500">
-                <div className="w-6 h-6 border-b-2 border-current rounded-full animate-spin" />
-                <span className="text-xs font-black uppercase tracking-[0.3em]">Mapping Multiverse...</span>
+                <div className="w-4 h-4 border-b-2 border-current rounded-full animate-spin" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Mapping Multiverse...</span>
              </div>
           )}
         </div>

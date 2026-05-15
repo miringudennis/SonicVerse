@@ -152,6 +152,23 @@ exports.sendMessage = async (req, res) => {
       'INSERT INTO group_messages (group_id, sender_id, content, media_url, media_type, reply_to_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [groupId, userId, content, mediaUrl, mediaType || 'text', replyToId]
     );
+
+    // Create notifications for other members
+    const groupResult = await db.query('SELECT name FROM groups WHERE id = $1', [groupId]);
+    const membersResult = await db.query('SELECT user_id FROM group_members WHERE group_id = $1 AND user_id != $2', [groupId, userId]);
+    
+    const notifications = membersResult.rows.map(member => 
+      db.query(
+        'INSERT INTO notifications (user_id, type, data) VALUES ($1, $2, $3)',
+        [member.user_id, 'group_message', JSON.stringify({ 
+          group_id: groupId, 
+          group_name: groupResult.rows[0].name,
+          message_id: result.rows[0].id
+        })]
+      )
+    );
+    await Promise.all(notifications);
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -179,7 +196,7 @@ exports.deleteMessage = async (req, res) => {
 };
 
 exports.updateGroup = async (req, res) => {
-  const { groupId, name, imageUrl } = req.body;
+  const { groupId, name, imageUrl, wallpaperUrl } = req.body;
   const userId = req.user.id;
 
   try {
@@ -190,8 +207,8 @@ exports.updateGroup = async (req, res) => {
     if (adminCheck.rows.length === 0) return res.status(403).json({ message: 'Admin access required' });
 
     const result = await db.query(
-      'UPDATE groups SET name = COALESCE($1, name), image_url = COALESCE($2, image_url) WHERE id = $3 RETURNING *',
-      [name, imageUrl, groupId]
+      'UPDATE groups SET name = COALESCE($1, name), image_url = COALESCE($2, image_url), wallpaper_url = COALESCE($3, wallpaper_url) WHERE id = $4 RETURNING *',
+      [name, imageUrl, wallpaperUrl, groupId]
     );
     res.json(result.rows[0]);
   } catch (err) {
