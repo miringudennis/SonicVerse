@@ -1,6 +1,6 @@
 import { Component, type ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown, Menu, X, Bell } from 'lucide-react';
+import { Music, Compass, LayoutGrid, Map as MapIcon, ShoppingCart, LogIn, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
@@ -8,6 +8,7 @@ import { Player } from './Player';
 import { AppBackground } from './AppBackground';
 import { Footer } from './Footer';
 import { SyncModal } from './SyncModal';
+import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface Props {
   children: ReactNode;
@@ -166,10 +167,7 @@ export const Layout = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-3 rounded-full bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full border border-black" />
-            </button>
+            <NotificationsDropdown />
             <UserDropdown />
           </div>
         </nav>

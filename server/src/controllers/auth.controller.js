@@ -9,7 +9,12 @@ exports.register = async (req, res) => {
   try {
     const userCheck = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'Email address already registered' });
+    }
+
+    const usernameCheck = await db.query('SELECT * FROM profiles WHERE username = $1', [username]);
+    if (usernameCheck.rows.length > 0) {
+      return res.status(400).json({ message: 'Username already taken' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -98,6 +103,13 @@ exports.updateProfile = async (req, res) => {
   const userId = req.user.id;
 
   try {
+    if (username) {
+      const usernameCheck = await db.query('SELECT * FROM profiles WHERE username = $1 AND user_id != $2', [username, userId]);
+      if (usernameCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'Username already taken' });
+      }
+    }
+
     const result = await db.query(
       `UPDATE profiles 
        SET username = COALESCE($1, username),

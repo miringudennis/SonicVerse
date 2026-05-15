@@ -10,6 +10,8 @@ const postRoutes = require('./routes/post.routes');
 const spotifyRoutes = require('./routes/spotify.routes');
 const youtubeRoutes = require('./routes/youtube.routes');
 const appleRoutes = require('./routes/apple.routes');
+const socialRoutes = require('./routes/social.routes');
+const groupRoutes = require('./routes/group.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -50,6 +52,8 @@ app.use('/api/posts', postRoutes);
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/apple', appleRoutes);
+app.use('/api/social', socialRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Socket.io basic setup
 io.on('connection', (socket) => {
